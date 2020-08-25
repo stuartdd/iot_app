@@ -1,0 +1,257 @@
+{
+  "name": "Julie",
+  "bpReadings": [
+    {
+      "id": 1598080902788,
+      "hide": false,
+      "sys": 150,
+      "dia": 82,
+      "pulse": 67
+    },
+    {
+      "id": 1598046108436,
+      "hide": false,
+      "sys": 141,
+      "dia": 91,
+      "pulse": 64
+    },
+    {
+      "id": 1597999784699,
+      "hide": false,
+      "sys": 154,
+      "dia": 82,
+      "pulse": 72
+    },
+    {
+      "id": 1597955159428,
+      "hide": false,
+      "sys": 145,
+      "dia": 91,
+      "pulse": 68
+    },
+    {
+      "id": 1597941000000,
+      "hide": false,
+      "sys": 148,
+      "dia": 87,
+      "pulse": 71
+    },
+    {
+      "id": 1597935000000,
+      "hide": false,
+      "sys": 164,
+      "dia": 102,
+      "pulse": 102
+    },
+    {
+      "id": 1597912653768,
+      "hide": false,
+      "sys": 139,
+      "dia": 91,
+      "pulse": 75
+    },
+    {
+      "id": 1597874127114,
+      "hide": false,
+      "sys": 155,
+      "dia": 89,
+      "pulse": 70
+    },
+    {
+      "id": 1597828938215,
+      "hide": false,
+      "sys": 144,
+      "dia": 88,
+      "pulse": 75
+    },
+    {
+      "id": 1597786766921,
+      "hide": false,
+      "sys": 145,
+      "dia": 74,
+      "pulse": 66
+    },
+    {
+      "id": 1597741248471,
+      "hide": false,
+      "sys": 151,
+      "dia": 92,
+      "pulse": 70
+    },
+    {
+      "id": 1597670100000,
+      "hide": false,
+      "sys": 153,
+      "dia": 86,
+      "pulse": 63
+    },
+    {
+      "id": 1597654200000,
+      "hide": false,
+      "sys": 147,
+      "dia": 89,
+      "pulse": 63
+    },
+    {
+      "id": 1597613400000,
+      "hide": false,
+      "sys": 178,
+      "dia": 88,
+      "pulse": 67
+    },
+    {
+      "id": 1597567800000,
+      "hide": false,
+      "sys": 157,
+      "dia": 89,
+      "pulse": 66
+    },
+    {
+      "id": 1597526100000,
+      "hide": false,
+      "sys": 182,
+      "dia": 85,
+      "pulse": 67
+    },
+    {
+      "id": 1597478400000,
+      "hide": false,
+      "sys": 153,
+      "dia": 88,
+      "pulse": 62
+    },
+    {
+      "id": 1597444200000,
+      "hide": false,
+      "sys": 163,
+      "dia": 84,
+      "pulse": 74
+    },
+    {
+      "id": 1597392000000,
+      "hide": false,
+      "sys": 141,
+      "dia": 80,
+      "pulse": 64
+    },
+    {
+      "id": 1597354200000,
+      "hide": false,
+      "sys": 161,
+      "dia": 89,
+      "pulse": 74
+    },
+    {
+      "id": 1597306200000,
+      "hide": false,
+      "sys": 145,
+      "dia": 88,
+      "pulse": 64
+    },
+    {
+      "id": 1597272900000,
+      "hide": false,
+      "sys": 137,
+      "dia": 77,
+      "pulse": 90
+    },
+    {
+      "id": 1597180800000,
+      "hide": false,
+      "sys": 142,
+      "dia": 82,
+      "pulse": 68
+    },
+    {
+      "id": 1597133400000,
+      "hide": false,
+      "sys": 135,
+      "dia": 92,
+      "pulse": 65
+    },
+    {
+      "id": 1597093200000,
+      "hide": false,
+      "sys": 152,
+      "dia": 90,
+      "pulse": 71
+    },
+    {
+      "id": 1597048200000,
+      "hide": false,
+      "sys": 158,
+      "dia": 96,
+      "pulse": 70
+    },
+    {
+      "id": 1597006800000,
+      "hide": false,
+      "sys": 135,
+      "dia": 85,
+      "pulse": 86
+    },
+    {
+      "id": 1596962400000,
+      "hide": false,
+      "sys": 146,
+      "dia": 82,
+      "pulse": 72
+    },
+    {
+      "id": 1596922200000,
+      "hide": false,
+      "sys": 139,
+      "dia": 85,
+      "pulse": 85
+    },
+    {
+      "id": 1596874500000,
+      "hide": false,
+      "sys": 151,
+      "dia": 97,
+      "pulse": 80
+    },
+    {
+      "id": 1596835800000,
+      "hide": false,
+      "sys": 150,
+      "dia": 87,
+      "pulse": 74
+    },
+    {
+      "id": 1596789000000,
+      "hide": false,
+      "sys": 132,
+      "dia": 85,
+      "pulse": 69
+    },
+    {
+      "id": 1596745800000,
+      "hide": false,
+      "sys": 160,
+      "dia": 87,
+      "pulse": 77
+    },
+    {
+      "id": 1596714913000,
+      "hide": false,
+      "sys": 158,
+      "dia": 97,
+      "pulse": 76
+    },
+    {
+      "id": 1596663900000,
+      "hide": false,
+      "sys": 161,
+      "dia": 94,
+      "pulse": 94
+    },
+    {
+      "id": 1596615780000,
+      "hide": false,
+      "sys": 158,
+      "dia": 99,
+      "pulse": 79
+    }
+  ]
+}
