@@ -1,6 +1,6 @@
 import 'package:iot_app/settings/maintenance_page.dart';
-import 'package:iot_app/settings/settings_page.dart';
 import 'package:flutter/material.dart';
+import 'data/settings_data.dart';
 import 'input/manage_page.dart';
 import 'main_page.dart';
 
@@ -13,6 +13,7 @@ class BPApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+  SettingsData.initState();
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
@@ -38,6 +39,7 @@ class BPApp extends StatelessWidget {
         "/manageCH": (context) => ManagePage("CH"),
         "/manageHW": (context) => ManagePage("HW"),
         "/schedule": (context) => MaintenancePage(),
+        "/settings": (context) => MaintenancePage(),
       },
     );
   }

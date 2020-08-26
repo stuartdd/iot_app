@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:iot_app/data/settings_data.dart';
 import 'package:iot_app/styles.dart';
 import 'package:flutter/material.dart';
@@ -20,7 +19,6 @@ class _ManagePageState extends State<ManagePage> {
   DeviceState deviceState;
   double screenWidth = 0;
   String name;
-  Timer timer;
 
   String heatingDesc() {
     String s = "${deviceState.name} is currently ";
@@ -34,10 +32,6 @@ class _ManagePageState extends State<ManagePage> {
   @override
   void initState() {
     deviceState = SettingsData.getState(widget.deviceType);
-//    timer = Timer.periodic(timerDelay, (Timer t) {
-//      setState(() {
-//      });
-//    });
   }
 
   List<Widget> _makeIcons(int count, double size, String text, String icon) {

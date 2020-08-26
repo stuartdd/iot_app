@@ -83,7 +83,6 @@ class _MainPageState extends State<MainPage> with RouteAware {
 
   @override
   void didPopNext() {
-    SettingsData.save(false);
     setState(() {});
   }
 

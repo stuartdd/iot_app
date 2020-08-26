@@ -8,19 +8,23 @@ const String FN_PREF = "settings";
 const String FN_TYPE = "json";
 const String J_TYPE = "type";
 const String J_NAME = "name";
+const String J_HOST = "host";
+const String J_PORT = "port";
 const String J_STATE = "state";
 const String J_DEVICES = "devices";
 class DeviceState {
   final String type;
   final String name;
+  final String host;
+  final int port;
 
   bool _on = false;
   DateTime _boostUntil;
 
-  DeviceState(this.type, this.name);
+  DeviceState(this.type, this.name, this.host, this.port);
 
   String toJson() {
-    return '{\"$J_TYPE\":\"$type\",\"$J_NAME\":\"$name\",\"$J_STATE\":\"${onString()}\"}';
+    return '{\"$J_TYPE\":\"$type\",\"$J_NAME\":\"$name\",\"$J_HOST\":\"$host\",\"$J_PORT\":$port,\"$J_STATE\":\"${onString()}\"}';
   }
 
   boost(int mins) {
@@ -73,10 +77,22 @@ class DeviceState {
 }
 
 class SettingsData {
-  static Map<String, DeviceState> _state = {"CH": DeviceState("CH", "Heating"), "HW": DeviceState("HW", "Hot Water")};
+  static Map<String, DeviceState> _state;
   
   static String userName = "UN";
   static bool var1 = true;
+
+  static initState() async {
+    final file = await _localFile(false);
+    if (file.existsSync()) {
+      print('TRY LOAD');
+      load(false);
+    } else {
+      print('SAVING STATE');
+      _state = {"CH": DeviceState("CH", "Heating", "http://192.168.1.177", 80), "HW": DeviceState("HW", "Hot Water", "http://192.168.1.177",80)};
+      save(false);
+    }
+  }
 
   static DeviceState getState(String type) {
     return _state[type];
@@ -135,9 +151,13 @@ class SettingsData {
 
   static Future<String> copyFileToClipboard(bool backup) async {
     try {
-//      final file = await _localFile(backup);
-//      String contents = await file.readAsString();
-      String contents = toJson();
+      String contents;
+      final file = await _localFile(backup);
+      if (file.existsSync()) {
+        contents = await file.readAsString();
+      } else {
+        contents = "File does not exist:\n"+toJson();
+      }
       Clipboard.setData(ClipboardData(text: contents));
       return contents;
     } on Exception catch (e) {
