@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:iot_app/data/settings_data.dart';
+import 'package:iot_app/data/updatable.dart';
 import 'package:iot_app/styles.dart';
 import 'package:flutter/material.dart';
 
@@ -15,7 +16,7 @@ class ManagePage extends StatefulWidget {
 const double screenDiv = 2;
 const timerDelay = const Duration(seconds:1);
 
-class _ManagePageState extends State<ManagePage> {
+class _ManagePageState extends State<ManagePage> implements UpdatablePage {
   DeviceState deviceState;
   double screenWidth = 0;
   String name;
@@ -31,7 +32,15 @@ class _ManagePageState extends State<ManagePage> {
 
   @override
   void initState() {
+    super.initState();
     deviceState = SettingsData.getState(widget.deviceType);
+    SettingsData.listener = this;
+  }
+
+  @override
+  void dispose() {
+    SettingsData.listener = null;
+    super.dispose();
   }
 
   List<Widget> _makeIcons(int count, double size, String text, String icon) {
@@ -133,5 +142,11 @@ class _ManagePageState extends State<ManagePage> {
         ),
       ),
     );
+  }
+
+  @override
+  void update() {
+    setState(() {
+    });
   }
 }

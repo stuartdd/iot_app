@@ -1,4 +1,5 @@
 import 'package:iot_app/data/settings_data.dart';
+import 'package:iot_app/data/updatable.dart';
 import 'package:iot_app/styles.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -9,8 +10,22 @@ class MainPage extends StatefulWidget {
   @override
   _MainPageState createState() => _MainPageState();
 }
-class _MainPageState extends State<MainPage> with RouteAware {
+
+class _MainPageState extends State<MainPage> with RouteAware implements UpdatablePage {
   static double screenWidth = 0;
+
+
+  @override
+  void initState() {
+    super.initState();
+    SettingsData.listener = this;
+  }
+
+  @override
+  void dispose() {
+    SettingsData.listener = null;
+    super.dispose();
+  }
 
   Widget _makeCard(BuildContext context, String text, String route, String image) {
     return InkWell(
@@ -63,11 +78,6 @@ class _MainPageState extends State<MainPage> with RouteAware {
     );
   }
 
-  @override
-  void initState() {
-    super.initState();
-    SettingsData.load(false);
-  }
 
   @override
   void didChangeDependencies() {
@@ -76,14 +86,13 @@ class _MainPageState extends State<MainPage> with RouteAware {
   }
 
   @override
-  void dispose() {
-    routeObserver.unsubscribe(this);
-    super.dispose();
-  }
-
-  @override
   void didPopNext() {
     setState(() {});
   }
 
+  @override
+  void update() {
+    setState(() {
+    });
+  }
 }

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:iot_app/settings/maintenance_page.dart';
 import 'package:flutter/material.dart';
 import 'data/settings_data.dart';
@@ -13,7 +15,7 @@ class BPApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-  SettingsData.initState();
+    SettingsData.initState();
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(

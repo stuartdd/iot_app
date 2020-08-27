@@ -1,7 +1,10 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:async';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:iot_app/data/comms.dart';
+import 'package:iot_app/data/updatable.dart';
 import 'package:path_provider/path_provider.dart';
 
 const String FN_PREF = "settings";
@@ -10,21 +13,26 @@ const String J_TYPE = "type";
 const String J_NAME = "name";
 const String J_HOST = "host";
 const String J_PORT = "port";
+const String J_REMOTE_ID = "remoteId";
+
+const String DEFAULT_HOST = "http://192.168.1.177";
+const int DEFAULT_PORT = 80;
+
 const String J_STATE = "state";
 const String J_DEVICES = "devices";
+
 class DeviceState {
   final String type;
   final String name;
-  final String host;
-  final int port;
+  final String remoteId;
 
   bool _on = false;
   DateTime _boostUntil;
 
-  DeviceState(this.type, this.name, this.host, this.port);
+  DeviceState(this.type, this.name, this.remoteId);
 
   String toJson() {
-    return '{\"$J_TYPE\":\"$type\",\"$J_NAME\":\"$name\",\"$J_HOST\":\"$host\",\"$J_PORT\":$port,\"$J_STATE\":\"${onString()}\"}';
+    return '{\"$J_TYPE\":\"$type\",\"$J_NAME\":\"$name\",\"$J_REMOTE_ID\":\"$remoteId\",\"$J_STATE\":\"${onString()}\"}';
   }
 
   boost(int mins) {
@@ -74,23 +82,79 @@ class DeviceState {
     _boostUntil = null;
     _on = newState;
   }
+
+  bool updateState(Map m) {
+    bool currentOn = _on;
+    if (m[remoteId] == null) {
+      SettingsData.log("$type map[$remoteId] is null");
+      _on = false;
+      _boostUntil = null;
+    } else {
+      int t = m[remoteId];
+      if ((t != null) && (t > 0)) {
+        _on = true;
+        _boostUntil = DateTime.now().add(Duration(seconds: t));
+      } else {
+        _on = false;
+        _boostUntil = null;
+      }
+    }
+    return (_on != currentOn);
+  }
 }
 
 class SettingsData {
+  static UpdatablePage listener;
   static Map<String, DeviceState> _state;
-  
   static String userName = "UN";
   static bool var1 = true;
+  static String _logStr = "";
+  static String host;
+  static int port;
+  static Timer updateTimer;
+
+  static Future<bool> updateState() async {
+    Remote rd = Remote(host, port);
+
+    try {
+      Map m = await rd.get("switch");
+      int count = 0;
+      _state.forEach((k, v) {
+        if (v.updateState(m)) {
+          count++;
+        }
+      });
+      if (count > 0) {
+        if (listener != null) {
+          listener.update();
+        }
+      }
+    } on Exception {
+      return false;
+    }
+    return true;
+  }
+
+  static defaultState() {
+    log("defaultState");
+    host = DEFAULT_HOST;
+    port = DEFAULT_PORT;
+    _state = {"CH": DeviceState("CH", "Heating", "ra"), "HW": DeviceState("HW", "Hot Water", "rb")};
+  }
 
   static initState() async {
-    final file = await _localFile(false);
+    defaultState();
+    final file = await _localFile();
     if (file.existsSync()) {
-      print('TRY LOAD');
-      load(false);
+      await load();
     } else {
-      print('SAVING STATE');
-      _state = {"CH": DeviceState("CH", "Heating", "http://192.168.1.177", 80), "HW": DeviceState("HW", "Hot Water", "http://192.168.1.177",80)};
-      save(false);
+      log("Saving Default State!");
+      save();
+    }
+    if (updateTimer == null) {
+      updateTimer = Timer.periodic(Duration(seconds: 5), (timer) async {
+        bool success = await updateState();
+      });
     }
   }
 
@@ -101,34 +165,53 @@ class SettingsData {
   static String toJson() {
     String s = "";
     _state.forEach((k, v) => s = s + v.toJson() + ',');
-    return '{\"$J_NAME\":\"Stuart\", \"$J_DEVICES\" : [${s.substring(0, s.length-1)}]}';
+    return '{\"$J_NAME\":\"Stuart\",\"$J_HOST\":\"$host\",\"$J_PORT\":$port, \"$J_DEVICES\" : [${s.substring(0, s.length - 1)}]}';
   }
 
-  static int readInt(Map map, String name) {
+  static int readInt(Map map, String name, int def) {
     int val = map[name];
-    return val == -1 ? false : val;
+    return val == null ? def : val;
   }
 
-  static DateTime readId(Map map, String name, int count) {
-    int val = map[name];
-    return val == null ? DateTime.now().add(Duration(minutes: count)) : DateTime.fromMillisecondsSinceEpoch(val);
+  static String readString(Map map, String name, String def) {
+    var val = map[name];
+    return val == null ? def : val;
   }
 
-  static bool readBool(Map map, String name) {
+  static bool readBool(Map map, String name, bool def) {
     bool val = map[name];
-    return val == null ? false : val;
+    return val == null ? def : val;
   }
 
-  static bool readBoolInt(Map map, String name) {
-    int val = map[name];
-    if (val == null) {
-      return false;
-    }
-    return val == 0 ? false : true;
-  }
+  // {"name":"Stuart", "host":"http://192.168.1.177","port":80, "devices" : [{"type":"CH","name":"Heating","state":"OFF"},{"type":"HW","name":"Hot Water","state":"OFF"}]}
 
   static parseJson(String json) {
     Map userMap = jsonDecode(json);
+    userName = readString(userMap, J_NAME, "Unknown");
+    host = readString(userMap, J_HOST, "http://192.168.1.177");
+    port = readInt(userMap, J_PORT, null);
+    if (userMap[J_DEVICES] == null) {
+      log("parse: No 'devices' in json");
+      defaultState();
+      return;
+    }
+
+    Map<String, DeviceState> temp = {};
+    for (Map dMap in userMap[J_DEVICES]) {
+      String type = readString(dMap, J_TYPE, null);
+      if (type != null) {
+        DeviceState ds = DeviceState(type, readString(dMap, J_NAME, "Unknown"), readString(dMap, J_REMOTE_ID, null));
+        temp[ds.type] = ds;
+      } else {
+        log("parse: 'devices.type' is null. Skipping");
+      }
+    }
+    if (temp.length == 0) {
+      log("parse: device map is empty!");
+      defaultState();
+    } else {
+      _state = temp;
+    }
   }
 
   static Future<String> get _localPath async {
@@ -136,43 +219,64 @@ class SettingsData {
     return directory.path;
   }
 
-  static Future<File> _localFile(bool backup) async {
+  static Future<File> _localFile() async {
     final path = await _localPath;
-    if (backup) {
-      return File('$path/${FN_PREF}_bak.$FN_TYPE');
-    }
     return File('$path/$FN_PREF.$FN_TYPE');
   }
 
-  static void save(bool backup) async {
-    final file = await _localFile(backup);
-    await file.writeAsString(toJson());
-  }
-
-  static Future<String> copyFileToClipboard(bool backup) async {
+  static void save() async {
+    final file = await _localFile();
     try {
-      String contents;
-      final file = await _localFile(backup);
-      if (file.existsSync()) {
-        contents = await file.readAsString();
-      } else {
-        contents = "File does not exist:\n"+toJson();
-      }
-      Clipboard.setData(ClipboardData(text: contents));
-      return contents;
+      log("Save [${file.path}]");
+      await file.writeAsString(toJson());
     } on Exception catch (e) {
-      Clipboard.setData(ClipboardData(text: "Unable to read file!"));
-      return "Unable to read ${backup ? "BACKUP" : ""} file!";
+      log("Save [${file.path}] failed. Reason:" + e.toString());
     }
   }
 
-  static Future<void> load(bool backup) async {
+  static Future<void> load() async {
+    final file = await _localFile();
     try {
-      final file = await _localFile(backup);
+      log("load [${file.path}]");
       String contents = await file.readAsString();
       parseJson(contents);
     } on Exception catch (e) {
-      print(e);
+      log("Load [${file.path}] failed. Reason:" + e.toString());
     }
+  }
+
+  static Future<String> copyFileToClipboard(bool fromFile) async {
+    String contents;
+    if (fromFile) {
+      final file = await _localFile();
+      try {
+        if (file.existsSync()) {
+          contents = await file.readAsString();
+        } else {
+          contents = "File [${file.path}] does not exist:\n" + toJson();
+        }
+        Clipboard.setData(ClipboardData(text: contents));
+        return contents;
+      } on Exception catch (e) {
+        return "Unable to read file [${file.path}]";
+      }
+    } else {
+      contents = toJson();
+      Clipboard.setData(ClipboardData(text: contents));
+      return contents;
+    }
+  }
+
+  static String log(String s) {
+    if (_logStr.isEmpty) {
+      _logStr = s;
+    } else {
+      _logStr = _logStr + '\n' + s;
+    }
+    return s;
+  }
+
+  static String getLog() {
+    return _logStr.trim();
   }
 }

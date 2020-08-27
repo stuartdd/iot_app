@@ -1,6 +1,8 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+import 'package:iot_app/data/settings_data.dart';
+
 const int MS_DAY = 86400000;
 
 int secondsSinceMonday() {
@@ -10,46 +12,56 @@ int secondsSinceMonday() {
   return now.difference(mon2).inSeconds;
 }
 
-class Device {
+class Remote {
   final String hostIp;
   final int hostPort;
 
-  Device(this.hostIp, [this.hostPort]);
+  Remote(this.hostIp, [this.hostPort]);
 
-  Future<String> get(final String path) async {
+  Future<Map> get(final String path) async {
     final url = "$hostIp${hostPort==null?"":":${hostPort.toString()}"}/$path?sync=${secondsSinceMonday()}";
-    var response = await http.get(url);
+    var response;
+    try {
+      response = await http.get(url);
+    } on Exception catch (e) {
+      throw Exception(SettingsData.log('Failed to GET data from device. ${e.toString()}. URL[$url]'));
+    }
     if (response.statusCode == 200) {
-      return response.body;
+      try {
+        return jsonDecode(response.body);
+      } on Exception catch (e) {
+        throw Exception(SettingsData.log('Failed to parse data from device. ${e.toString()}. Json[${response.body}]'));
+      }
     } else {
-      throw Exception('Failed to get data from device. Code ${response.statusCode} : ${response.reasonPhrase}. Req : $url');
+      throw Exception(SettingsData.log('Failed to get data from device. Code ${response.statusCode} : ${response.reasonPhrase}. URL[$url]'));
     }
   }
 }
 
-class DeviceStatus {
-  final String id;
-  final int ra;
-  final int rb;
-  final double t0;
-  final double t1;
-  final double v0;
-  final double v1;
-
-
-  DeviceStatus(final this.id, final this.ra, final this.rb, final this.t0, final this.t1, final this.v0, final this.v1) {
-    if ((id == null) || (ra == null) || (rb == null)) {
-      throw Exception("Failed to get data from device. One of 'id' or 'ra' or 'rb' is null}");
-    }
-  }
-
-  static DeviceStatus fromJson(String json) {
-    Map m = jsonDecode(json);
-    return DeviceStatus(m["id"], m["ra"], m["rb"], m["t0"], m["t1"], m["v0"], m["v1"]);
-  }
-
-  @override
-  String toString() {
-    return 'DeviceStatus{id: $id, ra: $ra, rb: $rb, t0: $t0, t1: $t1, v0: $v0, v1: $v1}';
-  }
-}
+//class RemoteDeviceStatus {
+//  final Map map;
+//  final String id;
+//  final int ra;
+//  final int rb;
+//  final double t0;
+//  final double t1;
+//  final double v0;
+//  final double v1;
+//
+//
+//  RemoteDeviceStatus(final this.map, final this.id, final this.ra, final this.rb, final this.t0, final this.t1, final this.v0, final this.v1) {
+//    if ((id == null) || (ra == null) || (rb == null)) {
+//      throw Exception(SettingsData.log("Failed to get data from device. One of 'id' or 'ra' or 'rb' is null}"));
+//    }
+//  }
+//
+//  static RemoteDeviceStatus fromJson(String json) {
+//    Map m = jsonDecode(json);
+//    return RemoteDeviceStatus(m, m["id"], m["ra"], m["rb"], m["t0"], m["t1"], m["v0"], m["v1"]);
+//  }
+//
+//  @override
+//  String toString() {
+//    return 'RemoteDeviceStatus{id: $id, ra: $ra, rb: $rb, t0: $t0, t1: $t1, v0: $v0, v1: $v1}';
+//  }
+//}

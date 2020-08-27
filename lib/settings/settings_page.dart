@@ -131,7 +131,7 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
               onPressed: () {
                 setState(() {
-                  SettingsData.save(true);
+                  SettingsData.save();
                   statusText = "Backup data saved!";
                 });
               },

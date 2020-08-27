@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:iot_app/data/settings_data.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -39,12 +40,12 @@ class _MaintenancePageState extends State<MaintenancePage> {
         child: Column(
           children: [
             const ClearDivider(),
-            Text("Copy the JSON in the Primary data file to the clipboard and the field below.",
+            Text("Copy the contents of the settings file to the clipboard and the field below",
               style: const InfoTextStyle(),
             ),
             FlatButton(
               child: new Text(
-                "COPY DATA TO CLIPBOARD",
+                "COPY SETTINGS TO CLIPBOARD",
                 style: InputButtonStyle(20, Colors.black),
               ),
               onPressed: () async {
@@ -57,12 +58,12 @@ class _MaintenancePageState extends State<MaintenancePage> {
               shape: ButtonShape(),
             ),
             const ClearDivider(),
-            Text("Copy the JSON in the BACKUP file to the clipboard and the field below.",
+            Text("Copy the current state to the clipboard and the field below.",
               style: const InfoTextStyle(),
             ),
             FlatButton(
               child: new Text(
-                "COPY BACKUP TO CLIPBOARD",
+                "COPY STATE TO CLIPBOARD",
                 style: InputButtonStyle(20, Colors.black),
               ),
               onPressed: () async {
@@ -112,11 +113,15 @@ class _MaintenancePageState extends State<MaintenancePage> {
             const BlackDivider(),
             FlatButton(
               child: new Text(
-                "View Evening Graph (PM)",
+                "Copy log to the clipboard",
                 style: InputButtonStyle(20, Colors.black),
               ),
               onPressed: () {
-                Navigator.pushNamed(context, "/graphPm");
+                setState(() {
+                  String content = SettingsData.getLog();
+                  pasteController.text = content;
+                  Clipboard.setData(ClipboardData(text: content));
+                });
               },
               color: Colors.lightBlue,
               shape: ButtonShape(),
