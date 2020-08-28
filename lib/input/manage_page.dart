@@ -51,11 +51,7 @@ class _ManagePageState extends State<ManagePage> implements NotifiablePage {
         height: screenWidth / size / screenDiv,
       ));
     }
-    list.add(Text(
-      text,
-      textAlign: TextAlign.center,
-      style: const BoostTextStyle(),
-    ));
+    list.add(boostButtonWithText(text));
     return list;
   }
 
@@ -68,7 +64,7 @@ class _ManagePageState extends State<ManagePage> implements NotifiablePage {
       },
       child: Card(
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          mainAxisAlignment: MainAxisAlignment.end,
           children: _makeIcons(count, size, text, image),
         ),
       ),
@@ -89,11 +85,7 @@ class _ManagePageState extends State<ManagePage> implements NotifiablePage {
             width: screenWidth / size / screenDiv,
             height: screenWidth / size / screenDiv,
           ),
-          Text(
-            "Turn\n${deviceState.notOnString()}",
-            textAlign: TextAlign.center,
-            style: const BoostTextStyle(),
-          ),
+          boostButtonWithText("Turn it\n${deviceState.notOnString()}"),
         ]),
       ),
     );
@@ -129,7 +121,6 @@ class _ManagePageState extends State<ManagePage> implements NotifiablePage {
               textAlign: TextAlign.center,
               style: const HeadingDataStyle(),
             ),
-            BlackDivider(),
             _makeOnOffCard(context, 1, 1.6, "/input", deviceState),
             Text(
               "Until next scheduled ${deviceState.onString()} time",
@@ -139,7 +130,7 @@ class _ManagePageState extends State<ManagePage> implements NotifiablePage {
             BlackDivider(),
             _makeBoostCard(context, 1, 1.6, "/input", "${deviceState.type},1", "1 Hour\nBoost", "Boost"),
             _makeBoostCard(context, 2, 2, "/input", "${deviceState.type},2", "2 Hour\nBoost", "Boost"),
-            _makeBoostCard(context, 3, 3, "/input", "${deviceState.type},3", "3 Hour\nBoost", "Boost"),
+            _makeBoostCard(context, 3, 2.8, "/input", "${deviceState.type},3", "3 Hour\nBoost", "Boost"),
           ],
         ),
       ),

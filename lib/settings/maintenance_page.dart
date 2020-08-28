@@ -26,6 +26,11 @@ class _MaintenancePageState extends State<MaintenancePage> {
     pasteController = TextEditingController();
   }
 
+  Widget notification() {
+    String m = Notifier.lastMessage.isEmpty ? "Connection OK${SettingsData.ellipses()}" : Notifier.lastMessage;
+    return Text("[$m]", style: StatusTextStyle(Notifier.lastError),textAlign: TextAlign.center,);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -40,18 +45,18 @@ class _MaintenancePageState extends State<MaintenancePage> {
         scrollDirection: Axis.vertical,
         child: Column(
           children: [
-            Text("[${Notifier.lastMessage}]", style: StatusTextStyle(Notifier.lastError),textAlign: TextAlign.center,),
+            notification(),
             const BlackDivider(),
             Text("Copy the contents of the settings file to the clipboard and the field below",
               style: const InfoTextStyle(),
             ),
             FlatButton(
               child: new Text(
-                "COPY SETTINGS TO CLIPBOARD",
-                style: InputButtonStyle(20, Colors.black),
+                "COPY SETTINGS FILE TO CLIPBOARD",
+                style: InputButtonStyle(19, Colors.black),
               ),
               onPressed: () async {
-                String content = await SettingsData.copyFileToClipboard(false);
+                String content = await SettingsData.copyFileToClipboard(true);
                 setState(() {
                   pasteController.text = content;
                 });
@@ -66,10 +71,10 @@ class _MaintenancePageState extends State<MaintenancePage> {
             FlatButton(
               child: new Text(
                 "COPY STATE TO CLIPBOARD",
-                style: InputButtonStyle(20, Colors.black),
+                style: InputButtonStyle(19, Colors.black),
               ),
               onPressed: () async {
-                String content = await SettingsData.copyFileToClipboard(true);
+                String content = await SettingsData.copyFileToClipboard(false);
                 setState(() {
                   pasteController.text = content;
                 });

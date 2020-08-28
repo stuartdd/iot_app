@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:iot_app/settings/maintenance_page.dart';
 import 'package:flutter/material.dart';
+import 'package:iot_app/settings/settings_page.dart';
 import 'data/settings_data.dart';
 import 'input/manage_page.dart';
 import 'main_page.dart';
@@ -41,7 +42,8 @@ class BPApp extends StatelessWidget {
         "/manageCH": (context) => ManagePage("CH"),
         "/manageHW": (context) => ManagePage("HW"),
         "/schedule": (context) => MaintenancePage(),
-        "/settings": (context) => MaintenancePage(),
+        "/settings": (context) => SettingsPage(),
+        "/maintenance" : (context) => MaintenancePage(),
       },
     );
   }

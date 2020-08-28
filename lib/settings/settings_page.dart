@@ -1,52 +1,92 @@
+import 'package:iot_app/data/notification.dart';
 import 'package:iot_app/data/settings_data.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../styles.dart';
 
-class SettingsPage extends StatefulWidget {
+const double fieldFontSize = 19;
+
+class SettingsPage extends StatefulWidget  {
   @override
   _SettingsPageState createState() => _SettingsPageState();
+
 }
 
-class _SettingsPageState extends State<SettingsPage> {
-  TextEditingController nameController;
-  String statusText = "";
+class _SettingsPageState extends State<SettingsPage> implements NotifiablePage {
+  TextEditingController hostController;
+  TextEditingController portController;
+  TextEditingController pollController;
+  String portText = SettingsData.getPort().toString();
+  String pollText = SettingsData.getUpdatePeriodSeconds().toString();
+  double screenWidth = 0;
+  double fieldWidth = 0;
+
+  Widget notification() {
+    String m = Notifier.lastMessage.isEmpty ? "Connection OK${SettingsData.ellipses()}" : Notifier.lastMessage;
+    return Text("[$m]", style: StatusTextStyle(Notifier.lastError),textAlign: TextAlign.center,);
+  }
+
+  bool validatePort() {
+    try {
+      int i = int.parse(portText);
+      return ((i > 0) && (i < 65536));
+    } on Exception {
+      return false;
+    }
+  }
+
+  bool validatePoll() {
+    try {
+      int i = int.parse(pollText);
+      return ((i > 4) && (i < 31));
+    } on Exception {
+      return false;
+    }
+  }
 
   @override
   void dispose() {
-    nameController.dispose();
+    Notifier.remove(this);
+    hostController.dispose();
+    portController.dispose();
+    pollController.dispose();
     super.dispose();
   }
 
   @override
   void initState() {
     super.initState();
-    nameController = TextEditingController(text: SettingsData.userName);
+    hostController = TextEditingController(text: SettingsData.host);
+    portController = TextEditingController(text: SettingsData.getPort().toString());
+    pollController = TextEditingController(text: SettingsData.getUpdatePeriodSeconds().toString());
+    Notifier.addListener(this);
   }
 
-  Card makeCard(String label, Widget inputWidget) {
-    String l = label + "                          ".substring(0, 14 - label.length) + ": ";
-    return Card(
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          Text(
-            l,
+  Widget makeCard(String label, double fieldWidth, Widget inputWidget) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        SizedBox(
+          width: fieldWidth,
+          child: Text(
+            label,
             style: GoogleFonts.robotoMono(
-              fontSize: 20,
+              fontSize: fieldFontSize,
               fontWeight: FontWeight.bold,
               color: Colors.green,
             ),
           ),
-          inputWidget,
-        ],
-      ),
+        ),
+        SizedBox(width: screenWidth - fieldWidth - 10, child: inputWidget)
+      ],
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    screenWidth = MediaQuery.of(context).size.width;
+    fieldWidth = (screenWidth / 3);
     return Scaffold(
       appBar: new AppBar(
           title: new Text(
@@ -66,36 +106,96 @@ class _SettingsPageState extends State<SettingsPage> {
         scrollDirection: Axis.vertical,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            notification(),
+            infoStyleWithText("The HOST Device's http address\nExample: https://myDevice\nExample: http://192.168.1.255"),
             makeCard(
-              "Name",
-              SizedBox(
-                width: 150,
-                child: TextField(
-                  style: GoogleFonts.robotoMono(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.green,
-                  ),
-                  controller: nameController,
-                  onSubmitted: (value) {
-                    setState(() {
-                      if (value.isNotEmpty) {
-                        SettingsData.userName = value;
-                      } else {
-                        nameController.text = SettingsData.userName;
-                      }
-                    });
-                  },
+              "Host:" ,
+              fieldWidth * 0.6,
+              TextField(
+                style: GoogleFonts.robotoMono(
+                  fontSize: fieldFontSize,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.green,
                 ),
+                controller: hostController,
+                autocorrect: true,
+                keyboardType: TextInputType.url,
+                onSubmitted: (value) {
+                  setState(() {
+                    if (value.isNotEmpty) {
+                      SettingsData.host = value;
+                    } else {
+                      hostController.text = SettingsData.host;
+                    }
+                  });
+                },
               ),
             ),
-            const Text(
-              "Short name displayed at the top of the main page.",
-              style: InfoTextStyle(),
+            infoStyleWithText("The HOST Device's port number\nBetween 1 and 65535"),
+            makeCard(
+              "Port:",
+              fieldWidth * 1.6,
+              TextField(
+                style: GoogleFonts.robotoMono(
+                  fontSize: fieldFontSize,
+                  fontWeight: FontWeight.bold,
+                  color: validatePort()?Colors.green:Colors.red,
+                ),
+                autocorrect: true,
+                keyboardType: TextInputType.number,
+                controller: portController,
+                onChanged: (value) {
+                  setState(() {
+                    portText = value;
+                  });
+                },
+                onSubmitted: (value) {
+                  setState(() {
+                    if (validatePort()) {
+                      SettingsData.setPort(int.parse(portText));
+                    } else {
+                      portText = SettingsData.getPort().toString();
+                      portController.text = portText;
+                    }
+                  });
+                },
+              ),
+            ),
+            infoStyleWithText("Number of seconds between Device updates\n Between 5 and 30"),
+            makeCard(
+              "Update period:",
+              fieldWidth * 1.6,
+              TextField(
+                style: GoogleFonts.robotoMono(
+                  fontSize: fieldFontSize,
+                  fontWeight: FontWeight.bold,
+                  color: validatePoll()?Colors.green:Colors.red,
+                ),
+                autocorrect: true,
+                keyboardType: TextInputType.number,
+                controller: pollController,
+                onChanged: (value) {
+                  setState(() {
+                    pollText = value;
+                  });
+                },
+                onSubmitted: (value) {
+                  setState(() {
+                    if (validatePoll()) {
+                      SettingsData.setUpdatePeriodSeconds(int.parse(pollText));
+                    } else {
+                      pollText = SettingsData.getUpdatePeriodSeconds().toString();
+                      pollController.text = pollText;
+                    }
+                  });
+                },
+              ),
             ),
             makeCard(
                 "Show Hidden",
+                fieldWidth * 1.5,
                 Checkbox(
                     value: SettingsData.var1,
                     onChanged: (v) {
@@ -103,49 +203,16 @@ class _SettingsPageState extends State<SettingsPage> {
                         SettingsData.var1 = v;
                       });
                     })),
-            const Text(
-              "Display 'Hidden' entries in the main list.",
-              style: InfoTextStyle(),
-            ),
-            const BlackDivider(),
-            FlatButton(
-              child: new Text(
-                "Morning Graph (AM)",
-                style: InputButtonStyle(20, Colors.black),
-              ),
-              onPressed: () {
-                Navigator.pushNamed(context, "/graphAm");
-              },
-              color: Colors.lightBlue,
-              shape: ButtonShape(),
-            ),
-            const Text(
-              "Display 'Pulse' data on the graph.",
-              style: InfoTextStyle(),
-            ),
-            const BlackDivider(),
-            FlatButton(
-              child: new Text(
-                "WRITE DATA TO BACKUP",
-                style: InputButtonStyle(20, Colors.black),
-              ),
-              onPressed: () {
-                setState(() {
-                  SettingsData.save();
-                  statusText = "Backup data saved!";
-                });
-              },
-              color: Colors.lightBlue,
-              shape: ButtonShape(),
-            ),
-            const ClearDivider(),
-            Text(
-              statusText,
-              style: const InfoTextStyle(),
-            ),
           ],
         ),
       ),
     );
   }
+
+  @override
+  void update() {
+    setState(() {
+    });
+  }
+
 }

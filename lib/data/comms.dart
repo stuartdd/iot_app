@@ -16,10 +16,10 @@ class Remote {
   final String hostIp;
   final int hostPort;
 
-  Remote(this.hostIp, [this.hostPort]);
+  Remote(this.hostIp, this.hostPort);
 
   Future<Map> get(final String path) async {
-    final url = "$hostIp${hostPort == null ? "" : ":${hostPort.toString()}"}/$path?sync=${secondsSinceMonday()}";
+    final url = "$hostIp:$hostPort/$path?sync=${secondsSinceMonday()}";
     var response;
     try {
       response = await http.get(url).timeout(Duration(seconds: 3));
@@ -37,31 +37,3 @@ class Remote {
     }
   }
 }
-
-//class RemoteDeviceStatus {
-//  final Map map;
-//  final String id;
-//  final int ra;
-//  final int rb;
-//  final double t0;
-//  final double t1;
-//  final double v0;
-//  final double v1;
-//
-//
-//  RemoteDeviceStatus(final this.map, final this.id, final this.ra, final this.rb, final this.t0, final this.t1, final this.v0, final this.v1) {
-//    if ((id == null) || (ra == null) || (rb == null)) {
-//      throw Exception(SettingsData.log("Failed to get data from device. One of 'id' or 'ra' or 'rb' is null}"));
-//    }
-//  }
-//
-//  static RemoteDeviceStatus fromJson(String json) {
-//    Map m = jsonDecode(json);
-//    return RemoteDeviceStatus(m, m["id"], m["ra"], m["rb"], m["t0"], m["t1"], m["v0"], m["v1"]);
-//  }
-//
-//  @override
-//  String toString() {
-//    return 'RemoteDeviceStatus{id: $id, ra: $ra, rb: $rb, t0: $t0, t1: $t1, v0: $v0, v1: $v1}';
-//  }
-//}

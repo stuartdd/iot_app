@@ -109,7 +109,9 @@ class _MainPageState extends State<MainPage> with RouteAware implements Notifiab
 
   @override
   void didPopNext() {
-    setState(() {});
+    setState(() {
+      SettingsData.save();
+    });
   }
 
   @override
