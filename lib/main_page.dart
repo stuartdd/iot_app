@@ -1,8 +1,7 @@
+import 'package:iot_app/data/notification.dart';
 import 'package:iot_app/data/settings_data.dart';
-import 'package:iot_app/data/updatable.dart';
 import 'package:iot_app/styles.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
 
@@ -11,26 +10,27 @@ class MainPage extends StatefulWidget {
   _MainPageState createState() => _MainPageState();
 }
 
-class _MainPageState extends State<MainPage> with RouteAware implements UpdatablePage {
+class _MainPageState extends State<MainPage> with RouteAware implements NotifiablePage {
   static double screenWidth = 0;
 
+  @override
+  void dispose() {
+    super.dispose();
+    Notifier.remove(this);
+  }
 
   @override
   void initState() {
     super.initState();
-    SettingsData.listener = this;
-  }
-
-  @override
-  void dispose() {
-    SettingsData.listener = null;
-    super.dispose();
+    Notifier.addListener(this);
   }
 
   Widget _makeCard(BuildContext context, String text, String route, String image) {
     return InkWell(
       onTap: () {
-        Navigator.pushNamed(context, route);
+        if (SettingsData.connected) {
+          Navigator.pushNamed(context, route);
+        }
       },
       child: Card(
         child: Row(
@@ -38,8 +38,8 @@ class _MainPageState extends State<MainPage> with RouteAware implements Updatabl
           children: <Widget>[
             Image.asset(
               "assets/${image}",
-              width: screenWidth / 2,
-              height: screenWidth / 2,
+              width: screenWidth / 2.2,
+              height: screenWidth / 2.2,
             ),
             Text(text, textAlign: TextAlign.center ,style: const CardTextStyle()),
           ],
@@ -70,7 +70,10 @@ class _MainPageState extends State<MainPage> with RouteAware implements Updatabl
       body: ListView(
         shrinkWrap: true,
         children: [
+          notification(),
+          deviceDesc("CH"),
           _makeCard(context, "Manage\nCentral\nHeating", "/manageCH", "${SettingsData.getState("CH").iconPrefix()}.png"),
+          deviceDesc("HW"),
           _makeCard(context, "Manage\nHot\nWater", "/manageHW", "${SettingsData.getState("HW").iconPrefix()}.png"),
           _makeCard(context, "Schedule", "/schedule", "Dial.png"),
         ],
@@ -78,6 +81,25 @@ class _MainPageState extends State<MainPage> with RouteAware implements Updatabl
     );
   }
 
+  Widget deviceDesc(String type) {
+    DeviceState ds = SettingsData.getState(type);
+    if (ds.isOn()) {
+      return Text(
+        "${ds.onString()} until ${ds.boostedUntil()}",
+        textAlign: TextAlign.center,
+        style: const HeadingDataStyle(),
+      );
+    } else {
+      return Container(width: 0, height: 0);
+    }
+  }
+
+  Widget notification() {
+    if (Notifier.lastMessage.isEmpty) {
+      return Container(width: 0, height: 0);
+    }
+    return Text("[${Notifier.lastMessage}]", style: StatusTextStyle(Notifier.lastError),textAlign: TextAlign.center,);
+  }
 
   @override
   void didChangeDependencies() {

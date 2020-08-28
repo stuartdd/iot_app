@@ -1,6 +1,6 @@
 import 'dart:async';
+import 'package:iot_app/data/notification.dart';
 import 'package:iot_app/data/settings_data.dart';
-import 'package:iot_app/data/updatable.dart';
 import 'package:iot_app/styles.dart';
 import 'package:flutter/material.dart';
 
@@ -16,31 +16,30 @@ class ManagePage extends StatefulWidget {
 const double screenDiv = 2;
 const timerDelay = const Duration(seconds:1);
 
-class _ManagePageState extends State<ManagePage> implements UpdatablePage {
+class _ManagePageState extends State<ManagePage> implements NotifiablePage {
   DeviceState deviceState;
   double screenWidth = 0;
   String name;
 
-  String heatingDesc() {
-    String s = "${deviceState.name} is currently ";
-    if (deviceState.isBoosted()) {
-      return s + "Boosted\nuntil ${deviceState.boostedUntil()}";
+  String deviceDesc() {
+    if (deviceState.isOn()) {
+      return "${deviceState.name} is ${deviceState.onString()} until ${deviceState.boostedUntil()}";
     } else {
-      return s + "${deviceState.onString()}\nuntil next scheduled ${deviceState.notOnString()} time.";
+      return "${deviceState.name} is ${deviceState.onString()}";
     }
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    Notifier.remove(this);
   }
 
   @override
   void initState() {
     super.initState();
     deviceState = SettingsData.getState(widget.deviceType);
-    SettingsData.listener = this;
-  }
-
-  @override
-  void dispose() {
-    SettingsData.listener = null;
-    super.dispose();
+    Notifier.addListener(this);
   }
 
   List<Widget> _makeIcons(int count, double size, String text, String icon) {
@@ -100,6 +99,13 @@ class _ManagePageState extends State<ManagePage> implements UpdatablePage {
     );
   }
 
+  Widget notification() {
+    if (Notifier.lastMessage.isEmpty) {
+      return Container(width: 0, height: 0);
+    }
+    return Text("[${Notifier.lastMessage}]", style: StatusTextStyle(Notifier.lastError),textAlign: TextAlign.center,);
+  }
+
   @override
   Widget build(BuildContext context) {
     screenWidth = MediaQuery.of(context).size.width;
@@ -117,8 +123,9 @@ class _ManagePageState extends State<ManagePage> implements UpdatablePage {
         child: ListView(
           shrinkWrap: true,
           children: [
+            notification(),
             Text(
-              heatingDesc(),
+              deviceDesc(),
               textAlign: TextAlign.center,
               style: const HeadingDataStyle(),
             ),
@@ -133,11 +140,6 @@ class _ManagePageState extends State<ManagePage> implements UpdatablePage {
             _makeBoostCard(context, 1, 1.6, "/input", "${deviceState.type},1", "1 Hour\nBoost", "Boost"),
             _makeBoostCard(context, 2, 2, "/input", "${deviceState.type},2", "2 Hour\nBoost", "Boost"),
             _makeBoostCard(context, 3, 3, "/input", "${deviceState.type},3", "3 Hour\nBoost", "Boost"),
-            Text(
-              "${deviceState.isBoosted() ? "BOOSTED Until ${deviceState.boostedUntil()}" : ""}",
-              textAlign: TextAlign.center,
-              style: const InfoTextStyle(),
-            ),
           ],
         ),
       ),

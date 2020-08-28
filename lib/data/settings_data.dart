@@ -1,11 +1,11 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:async';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:iot_app/data/comms.dart';
-import 'package:iot_app/data/updatable.dart';
 import 'package:path_provider/path_provider.dart';
+
+import 'notification.dart';
 
 const String FN_PREF = "settings";
 const String FN_TYPE = "json";
@@ -17,7 +17,7 @@ const String J_REMOTE_ID = "remoteId";
 
 const String DEFAULT_HOST = "http://192.168.1.177";
 const int DEFAULT_PORT = 80;
-
+const String ELIPSES = "......";
 const String J_STATE = "state";
 const String J_DEVICES = "devices";
 
@@ -63,7 +63,7 @@ class DeviceState {
   }
 
   String boostedUntil() {
-    return "${pad(_boostUntil.hour)}:${pad(_boostUntil.minute)}:${pad(_boostUntil.second)}";
+    return "${pad(_boostUntil.hour)}:${pad(_boostUntil.minute)}";
   }
 
   isOn() {
@@ -104,18 +104,22 @@ class DeviceState {
 }
 
 class SettingsData {
-  static UpdatablePage listener;
   static Map<String, DeviceState> _state;
   static String userName = "UN";
   static bool var1 = true;
   static String _logStr = "";
   static String host;
   static int port;
+  static bool connected = false;
   static Timer updateTimer;
+  static int updateCounter = 0;
 
-  static Future<bool> updateState() async {
+  static updateState() async {
+    SettingsData.updateCounter++;
+    if (!connected) {
+      await Notifier.send("Contacting device."+ellipses(), true);
+    }
     Remote rd = Remote(host, port);
-
     try {
       Map m = await rd.get("switch");
       int count = 0;
@@ -125,14 +129,19 @@ class SettingsData {
         }
       });
       if (count > 0) {
-        if (listener != null) {
-          listener.update();
-        }
+        await Notifier.send("$count change${count > 1 ? 's' : ''}."+ellipses(), false);
+      } else {
+        await Notifier.send('', false);
       }
+      connected  = true;
     } on Exception {
-      return false;
+      await Notifier.send("Failed to read device."+ellipses(), true);
+      connected = false;
     }
-    return true;
+  }
+
+  static String ellipses() {
+    return ELIPSES.substring(0, (SettingsData.updateCounter % 4));
   }
 
   static defaultState() {
@@ -151,9 +160,10 @@ class SettingsData {
       log("Saving Default State!");
       save();
     }
+    await updateState();
     if (updateTimer == null) {
-      updateTimer = Timer.periodic(Duration(seconds: 5), (timer) async {
-        bool success = await updateState();
+      updateTimer = Timer.periodic(Duration(seconds: 5), (t) async {
+        await updateState();
       });
     }
   }

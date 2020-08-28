@@ -1,4 +1,5 @@
 import 'package:flutter/services.dart';
+import 'package:iot_app/data/notification.dart';
 import 'package:iot_app/data/settings_data.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -39,7 +40,8 @@ class _MaintenancePageState extends State<MaintenancePage> {
         scrollDirection: Axis.vertical,
         child: Column(
           children: [
-            const ClearDivider(),
+            Text("[${Notifier.lastMessage}]", style: StatusTextStyle(Notifier.lastError),textAlign: TextAlign.center,),
+            const BlackDivider(),
             Text("Copy the contents of the settings file to the clipboard and the field below",
               style: const InfoTextStyle(),
             ),

@@ -37,6 +37,15 @@ class InfoTextStyle extends TextStyle {
   );
 }
 
+class StatusTextStyle extends TextStyle {
+  const StatusTextStyle(bool error)
+      : super(
+    fontSize: 20.0,
+    color: (error?Colors.pink:Colors.green),
+    fontWeight: FontWeight.bold,
+  );
+}
+
 class CardTextStyle extends TextStyle {
   const CardTextStyle()
       : super(

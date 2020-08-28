@@ -1,3 +1,0 @@
-class UpdatablePage {
-  void update() {}
-}
