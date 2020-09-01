@@ -135,8 +135,8 @@ class _SettingsPageState extends State<SettingsPage> implements NotifiablePage {
             ),
             infoStyleWithText("The HOST Device's port number\nBetween 1 and 65535"),
             makeCard(
-              "Port:",
-              fieldWidth * 1.6,
+              "Host Port Number:",
+              fieldWidth * 2,
               TextField(
                 style: GoogleFonts.robotoMono(
                   fontSize: fieldFontSize,
@@ -165,8 +165,8 @@ class _SettingsPageState extends State<SettingsPage> implements NotifiablePage {
             ),
             infoStyleWithText("Number of seconds between Device updates\n Between 5 and 30"),
             makeCard(
-              "Update period:",
-              fieldWidth * 1.6,
+              "Update period (Seconds):",
+              fieldWidth * 2,
               TextField(
                 style: GoogleFonts.robotoMono(
                   fontSize: fieldFontSize,
@@ -193,16 +193,16 @@ class _SettingsPageState extends State<SettingsPage> implements NotifiablePage {
                 },
               ),
             ),
-            makeCard(
-                "Show Hidden",
-                fieldWidth * 1.5,
-                Checkbox(
-                    value: SettingsData.var1,
-                    onChanged: (v) {
-                      setState(() {
-                        SettingsData.var1 = v;
-                      });
-                    })),
+            // makeCard(
+            //     "Show Hidden",
+            //     fieldWidth * 1.5,
+            //     Checkbox(
+            //         value: SettingsData.var1,
+            //         onChanged: (v) {
+            //           setState(() {
+            //             SettingsData.var1 = v;
+            //           });
+            //         })),
           ],
         ),
       ),
