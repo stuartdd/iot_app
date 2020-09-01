@@ -77,9 +77,10 @@ Widget infoStyleWithText(String text) {
     ),
   );
 }
-Widget boostButtonWithText(String text) {
+
+Widget boostButtonWithText(String text, Color c) {
   return DecoratedBox(
-    decoration: const BoxDecoration(color: Colors.green),
+    decoration: BoxDecoration(color: c),
     child: Padding(
       padding: const EdgeInsets.all(16.0),
       child: Text(

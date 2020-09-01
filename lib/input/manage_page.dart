@@ -23,7 +23,7 @@ class _ManagePageState extends State<ManagePage> implements NotifiablePage {
 
   String deviceDesc() {
     if (deviceState.isOn()) {
-      return "${deviceState.name} is ${deviceState.onString()} until ${deviceState.boostedUntil()}";
+      return "${deviceState.onString()} until ${deviceState.boostedUntil()}";
     } else {
       return "${deviceState.name} is ${deviceState.onString()}";
     }
@@ -39,6 +39,7 @@ class _ManagePageState extends State<ManagePage> implements NotifiablePage {
   void initState() {
     super.initState();
     deviceState = SettingsData.getState(widget.deviceType);
+    deviceState.forceSync();
     Notifier.addListener(this);
   }
 
@@ -51,7 +52,7 @@ class _ManagePageState extends State<ManagePage> implements NotifiablePage {
         height: screenWidth / size / screenDiv,
       ));
     }
-    list.add(boostButtonWithText(text));
+    list.add(boostButtonWithText(text, deviceState.isInSync()?Colors.green:Colors.pink));
     return list;
   }
 
@@ -74,9 +75,11 @@ class _ManagePageState extends State<ManagePage> implements NotifiablePage {
   Widget _makeOnOffCard(BuildContext context, int count, double size, String route, DeviceState deviceState) {
     return InkWell(
       onTap: () {
-        setState(() {
-          deviceState.setOn(!deviceState.isOn());
-        });
+        if (deviceState.isInSync()) {
+          setState(() {
+              deviceState.setOn(!deviceState.isOn());
+          });
+        }
       },
       child: Card(
         child: Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
@@ -85,7 +88,7 @@ class _ManagePageState extends State<ManagePage> implements NotifiablePage {
             width: screenWidth / size / screenDiv,
             height: screenWidth / size / screenDiv,
           ),
-          boostButtonWithText("Turn it\n${deviceState.notOnString()}"),
+          boostButtonWithText("Turn it\n${deviceState.notOnString()}", deviceState.isInSync()?Colors.green:Colors.pink),
         ]),
       ),
     );

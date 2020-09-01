@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:async';
 import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 import 'package:iot_app/data/comms.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -14,7 +15,8 @@ const String J_NAME = "name";
 const String J_HOST = "host";
 const String J_PORT = "port";
 const String J_PERIOD = "period";
-const String J_REMOTE_ID = "remoteId";
+const String J_REMOTE_ID1 = "remoteId1";
+const String J_REMOTE_ID2 = "remoteId2";
 
 const String DEFAULT_HOST = "http://192.168.1.177";
 const int DEFAULT_PORT = 80;
@@ -26,15 +28,17 @@ const String J_DEVICES = "devices";
 class DeviceState {
   final String type;
   final String name;
-  final String remoteId;
+  final String remoteId1;
+  final String remoteId2;
 
   bool _on = false;
+  bool _requiredOn = false;
   DateTime _boostUntil;
 
-  DeviceState(this.type, this.name, this.remoteId);
+  DeviceState(this.type, this.name, this.remoteId1, this.remoteId2);
 
   String toJson() {
-    return '{\"$J_TYPE\":\"$type\",\"$J_NAME\":\"$name\",\"$J_REMOTE_ID\":\"$remoteId\",\"$J_STATE\":\"${onString()}\"}';
+    return '{\"$J_TYPE\":\"$type\",\"$J_NAME\":\"$name\",\"$J_REMOTE_ID1\":\"$remoteId1\",\"$J_REMOTE_ID2\":\"$remoteId2\",\"$J_STATE\":\"${onString()}\"}';
   }
 
   boost(int mins) {
@@ -65,7 +69,7 @@ class DeviceState {
   }
 
   String boostedUntil() {
-    return "${pad(_boostUntil.hour)}:${pad(_boostUntil.minute)}";
+    return "${DateFormat('EEEE').format(_boostUntil)} ${pad(_boostUntil.hour)}:${pad(_boostUntil.minute)}";
   }
 
   isOn() {
@@ -80,19 +84,28 @@ class DeviceState {
     return _on ? "OFF" : "ON";
   }
 
+  bool isInSync() {
+    return (_on == _requiredOn);
+  }
+
+  forceSync() {
+    _requiredOn = _on;
+  }
+
   setOn(bool newState) {
-    _boostUntil = null;
-    _on = newState;
+    print("NO");
+    _requiredOn = newState;
+    SettingsData.updateState("$remoteId2=${newState?"on":"off"}");
   }
 
   bool updateState(Map m) {
     bool currentOn = _on;
-    if (m[remoteId] == null) {
-      SettingsData.log("$type map[$remoteId] is null");
+    if (m[remoteId1] == null) {
+      SettingsData.log("$type map[$remoteId1] is null");
       _on = false;
       _boostUntil = null;
     } else {
-      int t = m[remoteId];
+      int t = m[remoteId1];
       if ((t != null) && (t > 0)) {
         _on = true;
         _boostUntil = DateTime.now().add(Duration(seconds: t));
@@ -135,14 +148,14 @@ class SettingsData {
     initTimer();
   }
 
-  static updateState() async {
+  static updateState(String action) async {
     SettingsData.updateCounter++;
     if (!connected) {
       await Notifier.send("Contacting device." + ellipses(), true);
     }
     Remote rd = Remote(host, getPort());
     try {
-      Map m = await rd.get("switch");
+      Map m = await rd.get("switch${action.isEmpty?"":"/$action"}");
       int count = 0;
       _state.forEach((k, v) {
         if (v.updateState(m)) {
@@ -150,7 +163,7 @@ class SettingsData {
         }
       });
       if (count > 0) {
-        await Notifier.send("$count change${count > 1 ? 's' : ''}." + ellipses(), false);
+        await Notifier.send('', false);
       } else {
         await Notifier.send('', false);
       }
@@ -171,7 +184,7 @@ class SettingsData {
       host = DEFAULT_HOST;
       _port = DEFAULT_PORT;
       _updatePeriodSeconds = DEFAULT_PERIOD_SECONDS;
-      _state = {"CH": DeviceState("CH", "Heating", "ra"), "HW": DeviceState("HW", "Hot Water", "rb")};
+      _state = {"CH": DeviceState("CH", "Heating", "ra", "sa"), "HW": DeviceState("HW", "Hot Water", "rb", "sb")};
     }
   }
 
@@ -184,7 +197,7 @@ class SettingsData {
       log("Saving Default State!");
       save();
     }
-    await updateState();
+    await updateState("");
     if (updateTimer == null) {
       initTimer();
     }
@@ -196,7 +209,7 @@ class SettingsData {
     }
 
     updateTimer = Timer.periodic(Duration(seconds: getUpdatePeriodSeconds()), (t) async {
-      await updateState();
+      await updateState("");
     });
   }
 
@@ -250,7 +263,7 @@ class SettingsData {
     for (Map dMap in userMap[J_DEVICES]) {
       String type = readString(dMap, J_TYPE, null);
       if (type != null) {
-        DeviceState ds = DeviceState(type, readString(dMap, J_NAME, "Unknown"), readString(dMap, J_REMOTE_ID, null));
+        DeviceState ds = DeviceState(type, readString(dMap, J_NAME, "Unknown"), readString(dMap, J_REMOTE_ID1, null),readString(dMap, J_REMOTE_ID2, null));
         temp[ds.type] = ds;
       } else {
         log("parse: 'devices.type' is null. Skipping entry!");
