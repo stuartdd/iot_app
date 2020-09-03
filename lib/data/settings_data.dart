@@ -15,8 +15,8 @@ const String J_NAME = "name";
 const String J_HOST = "host";
 const String J_PORT = "port";
 const String J_PERIOD = "period";
-const String J_REMOTE_ID1 = "remoteId1";
-const String J_REMOTE_ID2 = "remoteId2";
+const String J_REMOTE_ID_T = "remoteIdTime";
+const String J_REMOTE_ID_S = "remoteIdStat";
 
 const String DEFAULT_HOST = "http://192.168.1.177";
 const int DEFAULT_PORT = 80;
@@ -28,94 +28,97 @@ const String J_DEVICES = "devices";
 class DeviceState {
   final String type;
   final String name;
-  final String remoteId1;
-  final String remoteId2;
+  final String remoteIdTime;
+  final String remoteIdStat;
 
-  bool _on = false;
-  bool _requiredOn = false;
-  DateTime _boostUntil;
+  bool _state = false;
+  int _until = 0;
+  bool _inSync = false;
 
-  DeviceState(this.type, this.name, this.remoteId1, this.remoteId2);
+  DeviceState(this.type, this.name, this.remoteIdTime, this.remoteIdStat);
 
   String toJson() {
-    return '{\"$J_TYPE\":\"$type\",\"$J_NAME\":\"$name\",\"$J_REMOTE_ID1\":\"$remoteId1\",\"$J_REMOTE_ID2\":\"$remoteId2\",\"$J_STATE\":\"${onString()}\"}';
+    return '{\"$J_TYPE\":\"$type\",\"$J_NAME\":\"$name\",\"$J_REMOTE_ID_T\":\"$remoteIdTime\",\"$J_REMOTE_ID_S\":\"$remoteIdStat\",\"$J_STATE\":\"${onString()}\"}';
   }
 
-  boost(int mins) {
-    _boostUntil = DateTime.now().add(Duration(minutes: mins));
-    _on = true;
-  }
-
-  bool isBoosted() {
-    return remainingBoostSeconds() > 0;
+  bool hasUntil() {
+    return _until != 0;
   }
 
   String iconPrefix() {
-    return "${_on ? "ON" : "OFF"}_$type";
+    return "${isOn() ? "ON" : "OFF"}_$type";
   }
 
-  String pad(int i) {
+  String statusString() {
+    String s = "${onString()}";
+    if (hasUntil()) {
+      DateTime dt = SettingsData.dateTimePlus(_until);
+      if (DateTime.now().weekday == dt.weekday) {
+        return "$s until today at ${_pad(dt.hour)}:${_pad(dt.minute)}.";
+      }
+      return "$s until ${DateFormat('EEEE').format(dt)} ${_pad(
+          dt.hour)}:${_pad(dt.minute)}.";
+    }
+    return "$name is $s";
+  }
+
+  isOn() {
+    return _state;
+  }
+
+  String onString() {
+    return isOn() ? "ON" : "OFF";
+  }
+
+  String notOnString() {
+    return isOn() ? "OFF" : "ON";
+  }
+
+  bool isInSync() {
+    return _inSync;
+  }
+
+  clearSync() {
+    _inSync = true;
+  }
+
+  setOn(String mode) async {
+    _inSync = false;
+    await SettingsData.updateState("$remoteIdTime=$mode");
+  }
+
+  bool updateState(Map m) {
+    bool currentState = _state;
+    int currentUntil = _until;
+    if (m[remoteIdStat] == null) {
+      SettingsData.log("$type map[$remoteIdTime] is remoteIdStat");
+      _state = false;
+    } else {
+      int t = m[remoteIdTime];
+      _state = ((t != null) && (t > 0));
+    }
+
+    if (m[remoteIdTime] == null) {
+      SettingsData.log("$type map[$remoteIdTime] is null");
+      _until = 0;
+    } else {
+      int t = m[remoteIdTime];
+      if ((t != null) && (t > 0)) {
+        _until = t;
+      } else {
+        _until = 0;
+      }
+    }
+    return (_state != currentState) || (_until != currentUntil);
+  }
+
+  String _pad(int i) {
     if (i < 10) {
       return "0" + i.toString();
     }
     return i.toString();
   }
 
-  int remainingBoostSeconds() {
-    if (_boostUntil == null) {
-      return 0;
-    }
-    return _boostUntil.difference(DateTime.now()).inSeconds;
-  }
-
-  String boostedUntil() {
-    return "${DateFormat('EEEE').format(_boostUntil)} ${pad(_boostUntil.hour)}:${pad(_boostUntil.minute)}";
-  }
-
-  isOn() {
-    return _on;
-  }
-
-  String onString() {
-    return _on ? "ON" : "OFF";
-  }
-
-  String notOnString() {
-    return _on ? "OFF" : "ON";
-  }
-
-  bool isInSync() {
-    return (_on == _requiredOn);
-  }
-
-  forceSync() {
-    _requiredOn = _on;
-  }
-
-  setOn(bool newState) {
-    print("NO");
-    _requiredOn = newState;
-    SettingsData.updateState("$remoteId2=${newState?"on":"off"}");
-  }
-
-  bool updateState(Map m) {
-    bool currentOn = _on;
-    if (m[remoteId1] == null) {
-      SettingsData.log("$type map[$remoteId1] is null");
-      _on = false;
-      _boostUntil = null;
-    } else {
-      int t = m[remoteId1];
-      if ((t != null) && (t > 0)) {
-        _on = true;
-        _boostUntil = DateTime.now().add(Duration(seconds: t));
-      } else {
-        _on = false;
-        _boostUntil = null;
-      }
-    }
-    return (_on != currentOn);
-  }
 }
 
 class SettingsData {
@@ -127,6 +130,7 @@ class SettingsData {
   static String host;
   static int _port;
   static bool connected = false;
+  static bool connectionIsBusy = false;
   static Timer updateTimer;
   static int updateCounter = 0;
   static int _updatePeriodSeconds = DEFAULT_PERIOD_SECONDS;
@@ -140,7 +144,9 @@ class SettingsData {
   }
 
   static getUpdatePeriodSeconds() {
-    return _updatePeriodSeconds == null ? DEFAULT_PERIOD_SECONDS : _updatePeriodSeconds;
+    return _updatePeriodSeconds == null
+        ? DEFAULT_PERIOD_SECONDS
+        : _updatePeriodSeconds;
   }
 
   static setUpdatePeriodSeconds(int newUpdatePeriodSeconds) {
@@ -151,11 +157,16 @@ class SettingsData {
   static updateState(String action) async {
     SettingsData.updateCounter++;
     if (!connected) {
-      await Notifier.send("Contacting device." + ellipses(), true);
+      Notifier.send("Contacting device." + ellipses(), 0, true);
     }
-    Remote rd = Remote(host, getPort());
+    if (connectionIsBusy) {
+      log("Connection overlap:Aborted");
+      return;
+    }
     try {
-      Map m = await rd.get("switch${action.isEmpty?"":"/$action"}");
+      connectionIsBusy = true;
+      Remote rd = Remote(host, getPort());
+      Map m = await rd.get("switch${action.isEmpty ? "" : "/$action"}");
       int count = 0;
       _state.forEach((k, v) {
         if (v.updateState(m)) {
@@ -163,14 +174,16 @@ class SettingsData {
         }
       });
       if (count > 0) {
-        await Notifier.send('', false);
+        Notifier.send('[$action] $count Updates Received', count, false);
       } else {
-        await Notifier.send('', false);
+        Notifier.send('[$action] Up to date', 0, false);
       }
       connected = true;
     } on Exception {
-      await Notifier.send("Failed to read device." + ellipses(), true);
+      Notifier.send("Failed to read device." + ellipses(), 0, true);
       connected = false;
+    } finally {
+      connectionIsBusy = false;
     }
   }
 
@@ -184,7 +197,10 @@ class SettingsData {
       host = DEFAULT_HOST;
       _port = DEFAULT_PORT;
       _updatePeriodSeconds = DEFAULT_PERIOD_SECONDS;
-      _state = {"CH": DeviceState("CH", "Heating", "ra", "sa"), "HW": DeviceState("HW", "Hot Water", "rb", "sb")};
+      _state = {
+        "CH": DeviceState("CH", "Heating", "ta", "sa"),
+        "HW": DeviceState("HW", "Hot Water", "tb", "sb")
+      };
     }
   }
 
@@ -208,13 +224,18 @@ class SettingsData {
       updateTimer.cancel();
     }
 
-    updateTimer = Timer.periodic(Duration(seconds: getUpdatePeriodSeconds()), (t) async {
+    updateTimer =
+        Timer.periodic(Duration(seconds: getUpdatePeriodSeconds()), (t) async {
       await updateState("");
     });
   }
 
   static DeviceState getState(String type) {
     return _state[type];
+  }
+
+  static String statusString(String type) {
+    return _state[type] == null? "Device type [$type] is undefined":_state[type].statusString();
   }
 
   static String toJson() {
@@ -237,8 +258,6 @@ class SettingsData {
     bool val = map[name];
     return val == null ? def : val;
   }
-
-  // {"name":"Stuart", "host":"http://192.168.1.177","port":80, "devices" : [{"type":"CH","name":"Heating","state":"OFF"},{"type":"HW","name":"Hot Water","state":"OFF"}]}
 
   static parseJson(String json) {
     Map userMap;
@@ -263,7 +282,12 @@ class SettingsData {
     for (Map dMap in userMap[J_DEVICES]) {
       String type = readString(dMap, J_TYPE, null);
       if (type != null) {
-        DeviceState ds = DeviceState(type, readString(dMap, J_NAME, "Unknown"), readString(dMap, J_REMOTE_ID1, null),readString(dMap, J_REMOTE_ID2, null));
+        DeviceState ds = DeviceState(
+          type,
+          readString(dMap, J_NAME, "Unknown"),
+          readString(dMap, J_REMOTE_ID_T, null),
+          readString(dMap, J_REMOTE_ID_S, null),
+        );
         temp[ds.type] = ds;
       } else {
         log("parse: 'devices.type' is null. Skipping entry!");
@@ -316,7 +340,8 @@ class SettingsData {
         if (file.existsSync()) {
           contents = await file.readAsString();
         } else {
-          contents = SettingsData.log("File [${file.path}] does not exist:\n" + toJson());
+          contents = SettingsData.log(
+              "File [${file.path}] does not exist:\n" + toJson());
         }
         Clipboard.setData(ClipboardData(text: contents));
         return contents;
@@ -331,6 +356,7 @@ class SettingsData {
   }
 
   static String log(String s) {
+    print("LOG:$s");
     _logListIndex++;
     _logList.add("$_logListIndex: $s");
     if (_logList.length > 20) {
@@ -346,4 +372,13 @@ class SettingsData {
     });
     return l;
   }
+
+  static DateTime dateTimePlus(int seconds) {
+    DateTime now = DateTime.now();
+    DateTime mon1 = DateTime.fromMillisecondsSinceEpoch(
+        now.millisecondsSinceEpoch - ((now.weekday - 1) * MS_DAY));
+    DateTime mon2 = DateTime(mon1.year, mon1.month, mon1.day, 0, 0, 1);
+    return mon2.add(Duration(seconds: seconds));
+  }
+
 }

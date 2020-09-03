@@ -21,11 +21,7 @@ class _SettingsPageState extends State<SettingsPage> implements NotifiablePage {
   String pollText = SettingsData.getUpdatePeriodSeconds().toString();
   double screenWidth = 0;
   double fieldWidth = 0;
-
-  Widget notification() {
-    String m = Notifier.lastMessage.isEmpty ? "Connection OK${SettingsData.ellipses()}" : Notifier.lastMessage;
-    return Text("[$m]", style: StatusTextStyle(Notifier.lastError),textAlign: TextAlign.center,);
-  }
+  Widget notification = Container(width: 0, height: 0);
 
   bool validatePort() {
     try {
@@ -108,7 +104,7 @@ class _SettingsPageState extends State<SettingsPage> implements NotifiablePage {
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            notification(),
+            notification,
             infoStyleWithText("The HOST Device's http address\nExample: https://myDevice\nExample: http://192.168.1.255"),
             makeCard(
               "Host:" ,
@@ -136,7 +132,7 @@ class _SettingsPageState extends State<SettingsPage> implements NotifiablePage {
             infoStyleWithText("The HOST Device's port number\nBetween 1 and 65535"),
             makeCard(
               "Host Port Number:",
-              fieldWidth * 2,
+              fieldWidth * 2.4,
               TextField(
                 style: GoogleFonts.robotoMono(
                   fontSize: fieldFontSize,
@@ -166,7 +162,7 @@ class _SettingsPageState extends State<SettingsPage> implements NotifiablePage {
             infoStyleWithText("Number of seconds between Device updates\n Between 5 and 30"),
             makeCard(
               "Update period (Seconds):",
-              fieldWidth * 2,
+              fieldWidth * 2.4,
               TextField(
                 style: GoogleFonts.robotoMono(
                   fontSize: fieldFontSize,
@@ -210,8 +206,9 @@ class _SettingsPageState extends State<SettingsPage> implements NotifiablePage {
   }
 
   @override
-  void update() {
+  void update(String m, int count, bool error) {
     setState(() {
+      notification = Text("[$m]", style: StatusTextStyle(error),textAlign: TextAlign.center,);
     });
   }
 

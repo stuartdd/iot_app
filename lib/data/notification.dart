@@ -1,12 +1,9 @@
 class NotifiablePage {
-  void update() {}
+  void update(String m, int count, bool error) {}
 }
 
 class Notifier {
   static List<NotifiablePage> _listeners = [];
-
-  static String lastMessage = "Loading...";
-  static bool lastError = false;
 
   static addListener(NotifiablePage n) {
     if (!_listeners.contains(n)) {
@@ -14,11 +11,9 @@ class Notifier {
     }
   }
 
-  static send(String m, bool error) {
+  static send(String m, int count, bool error) {
     _listeners.forEach((listener) {
-      lastMessage = m;
-      lastError = error;
-      listener.update();
+      listener.update(m, count, error);
     });
   }
 

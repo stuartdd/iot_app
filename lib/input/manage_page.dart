@@ -8,7 +8,6 @@ class ManagePage extends StatefulWidget {
   final String deviceType;
 
   ManagePage(this.deviceType);
-
   @override
   _ManagePageState createState() => _ManagePageState();
 }
@@ -20,14 +19,7 @@ class _ManagePageState extends State<ManagePage> implements NotifiablePage {
   DeviceState deviceState;
   double screenWidth = 0;
   String name;
-
-  String deviceDesc() {
-    if (deviceState.isOn()) {
-      return "${deviceState.onString()} until ${deviceState.boostedUntil()}";
-    } else {
-      return "${deviceState.name} is ${deviceState.onString()}";
-    }
-  }
+  Widget notification = Container(width: 0, height: 0);
 
   @override
   void dispose() {
@@ -39,7 +31,7 @@ class _ManagePageState extends State<ManagePage> implements NotifiablePage {
   void initState() {
     super.initState();
     deviceState = SettingsData.getState(widget.deviceType);
-    deviceState.forceSync();
+    deviceState.clearSync();
     Notifier.addListener(this);
   }
 
@@ -56,11 +48,13 @@ class _ManagePageState extends State<ManagePage> implements NotifiablePage {
     return list;
   }
 
-  Widget _makeBoostCard(BuildContext context, int count, double size, String route, String arg, String text, String image) {
+  Widget _makeBoostCard(BuildContext context, String mode, int count, double size, String route, String arg, String text, String image) {
     return InkWell(
       onTap: () {
         setState(() {
-          deviceState.boost(count * 60);
+          if (deviceState.isInSync()) {
+            deviceState.setOn(mode);
+          }
         });
       },
       child: Card(
@@ -75,11 +69,11 @@ class _ManagePageState extends State<ManagePage> implements NotifiablePage {
   Widget _makeOnOffCard(BuildContext context, int count, double size, String route, DeviceState deviceState) {
     return InkWell(
       onTap: () {
-        if (deviceState.isInSync()) {
-          setState(() {
-              deviceState.setOn(!deviceState.isOn());
+           setState(() {
+             if (deviceState.isInSync()) {
+               deviceState.setOn(!deviceState.isOn()?"on":"off");
+             }
           });
-        }
       },
       child: Card(
         child: Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
@@ -94,17 +88,9 @@ class _ManagePageState extends State<ManagePage> implements NotifiablePage {
     );
   }
 
-  Widget notification() {
-    if (Notifier.lastMessage.isEmpty) {
-      return Container(width: 0, height: 0);
-    }
-    return Text("[${Notifier.lastMessage}]", style: StatusTextStyle(Notifier.lastError),textAlign: TextAlign.center,);
-  }
-
   @override
   Widget build(BuildContext context) {
     screenWidth = MediaQuery.of(context).size.width;
-    int remainingMinutes = deviceState.remainingBoostSeconds();
     return Scaffold(
       appBar: new AppBar(
         title: new Text(
@@ -118,22 +104,17 @@ class _ManagePageState extends State<ManagePage> implements NotifiablePage {
         child: ListView(
           shrinkWrap: true,
           children: [
-            notification(),
+            notification,
             Text(
-              deviceDesc(),
+              deviceState.statusString(),
               textAlign: TextAlign.center,
               style: const HeadingDataStyle(),
             ),
             _makeOnOffCard(context, 1, 1.6, "/input", deviceState),
-            Text(
-              "Until next scheduled ${deviceState.onString()} time",
-              textAlign: TextAlign.center,
-              style: const HeadingDataStyle(),
-            ),
-            BlackDivider(),
-            _makeBoostCard(context, 1, 1.6, "/input", "${deviceState.type},1", "1 Hour\nBoost", "Boost"),
-            _makeBoostCard(context, 2, 2, "/input", "${deviceState.type},2", "2 Hour\nBoost", "Boost"),
-            _makeBoostCard(context, 3, 2.8, "/input", "${deviceState.type},3", "3 Hour\nBoost", "Boost"),
+             BlackDivider(),
+            _makeBoostCard(context, "b1", 1, 1.6, "/input", "${deviceState.type},1", "1 Hour\nBoost", "Boost"),
+            _makeBoostCard(context, "b2", 2, 2, "/input", "${deviceState.type},2", "2 Hour\nBoost", "Boost"),
+            _makeBoostCard(context, "b3", 3, 2.8, "/input", "${deviceState.type},3", "3 Hour\nBoost", "Boost"),
           ],
         ),
       ),
@@ -141,8 +122,13 @@ class _ManagePageState extends State<ManagePage> implements NotifiablePage {
   }
 
   @override
-  void update() {
+  void update(String m, int count, bool error) {
+    print("Manage Notification ${error?"ERROR":""} $m");
     setState(() {
+      if (count > 0) {
+        deviceState.clearSync();
+      }
+      notification = !error?Container(width: 0, height: 0):Text("[$m]", style: StatusTextStyle(error),textAlign: TextAlign.center,);
     });
   }
 }

@@ -26,11 +26,6 @@ class _MaintenancePageState extends State<MaintenancePage> {
     pasteController = TextEditingController();
   }
 
-  Widget notification() {
-    String m = Notifier.lastMessage.isEmpty ? "Connection OK${SettingsData.ellipses()}" : Notifier.lastMessage;
-    return Text("[$m]", style: StatusTextStyle(Notifier.lastError),textAlign: TextAlign.center,);
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -45,7 +40,6 @@ class _MaintenancePageState extends State<MaintenancePage> {
         scrollDirection: Axis.vertical,
         child: Column(
           children: [
-            notification(),
             const BlackDivider(),
             Text("Copy the contents of the settings file to the clipboard and the field below",
               style: const InfoTextStyle(),

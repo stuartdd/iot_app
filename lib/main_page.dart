@@ -12,6 +12,7 @@ class MainPage extends StatefulWidget {
 
 class _MainPageState extends State<MainPage> with RouteAware implements NotifiablePage {
   static double screenWidth = 0;
+  Widget notification = Container(width: 0, height: 0);
 
   @override
   void dispose() {
@@ -70,7 +71,7 @@ class _MainPageState extends State<MainPage> with RouteAware implements Notifiab
       body: ListView(
         shrinkWrap: true,
         children: [
-          notification(),
+          notification,
           deviceDesc("CH"),
           _makeCard(context, "Manage\nCentral\nHeating", "/manageCH", "${SettingsData.getState("CH").iconPrefix()}.png"),
           deviceDesc("HW"),
@@ -82,23 +83,11 @@ class _MainPageState extends State<MainPage> with RouteAware implements Notifiab
   }
 
   Widget deviceDesc(String type) {
-    DeviceState ds = SettingsData.getState(type);
-    if (ds.isOn()) {
       return Text(
-        "${ds.onString()} until ${ds.boostedUntil()}",
+        SettingsData.statusString(type),
         textAlign: TextAlign.center,
         style: const HeadingDataStyle(),
       );
-    } else {
-      return Container(width: 0, height: 0);
-    }
-  }
-
-  Widget notification() {
-    if (Notifier.lastMessage.isEmpty) {
-      return Container(width: 0, height: 0);
-    }
-    return Text("[${Notifier.lastMessage}]", style: StatusTextStyle(Notifier.lastError),textAlign: TextAlign.center,);
   }
 
   @override
@@ -115,8 +104,9 @@ class _MainPageState extends State<MainPage> with RouteAware implements Notifiab
   }
 
   @override
-  void update() {
+  void update(String m, int count, bool error) {
     setState(() {
+      notification = !error?Container(width: 0, height: 0):Text("[$m]", style: StatusTextStyle(error),textAlign: TextAlign.center,);
     });
   }
 }
