@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:iot_app/settings/settings_page.dart';
 import 'data/settings_data.dart';
 import 'input/manage_page.dart';
+import 'input/schedule_page.dart';
 import 'main_page.dart';
 
 void main() {
@@ -41,7 +42,7 @@ class BPApp extends StatelessWidget {
         "/": (context) => MainPage(),
         "/manageCH": (context) => ManagePage("CH"),
         "/manageHW": (context) => ManagePage("HW"),
-        "/schedule": (context) => MaintenancePage(),
+        "/schedule": (context) => SchedulePage(),
         "/settings": (context) => SettingsPage(),
         "/maintenance" : (context) => MaintenancePage(),
       },

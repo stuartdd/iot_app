@@ -26,10 +26,10 @@ class _MainPageState extends State<MainPage> with RouteAware implements Notifiab
     Notifier.addListener(this);
   }
 
-  Widget _makeCard(BuildContext context, String text, String route, String image) {
+  Widget _makeCard(BuildContext context, String text, String route, String image, bool requiresConnection) {
     return InkWell(
       onTap: () {
-        if (SettingsData.connected) {
+        if (SettingsData.connected && requiresConnection) {
           Navigator.pushNamed(context, route);
         }
       },
@@ -73,10 +73,10 @@ class _MainPageState extends State<MainPage> with RouteAware implements Notifiab
         children: [
           notification,
           deviceDesc("CH"),
-          _makeCard(context, "Manage\nCentral\nHeating", "/manageCH", "${SettingsData.getState("CH").iconPrefix()}.png"),
+          _makeCard(context, "Manage\nCentral\nHeating", "/manageCH", "${SettingsData.getState("CH").iconPrefix()}.png",true),
           deviceDesc("HW"),
-          _makeCard(context, "Manage\nHot\nWater", "/manageHW", "${SettingsData.getState("HW").iconPrefix()}.png"),
-          _makeCard(context, "Schedule", "/schedule", "Dial.png"),
+          _makeCard(context, "Manage\nHot\nWater", "/manageHW", "${SettingsData.getState("HW").iconPrefix()}.png",true),
+          _makeCard(context, "Schedule", "/schedule", "Dial.png",false),
         ],
       ),
     );
