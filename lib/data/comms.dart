@@ -3,7 +3,7 @@ import 'dart:convert';
 
 import 'package:iot_app/data/settings_data.dart';
 
-const int MS_DAY = 86400000;
+
 
 
 

@@ -3,7 +3,7 @@ import 'package:iot_app/data/settings_data.dart';
 import 'package:iot_app/styles.dart';
 import 'package:flutter/material.dart';
 
-final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
+final RouteObserver<PageRoute> routeObserverMP = RouteObserver<PageRoute>();
 
 class MainPage extends StatefulWidget {
   @override
@@ -12,7 +12,7 @@ class MainPage extends StatefulWidget {
 
 class _MainPageState extends State<MainPage> with RouteAware implements NotifiablePage {
   static double screenWidth = 0;
-  Widget notification = Container(width: 0, height: 0);
+  Widget notification = EmptyContainer();
 
   @override
   void dispose() {
@@ -26,10 +26,10 @@ class _MainPageState extends State<MainPage> with RouteAware implements Notifiab
     Notifier.addListener(this);
   }
 
-  Widget _makeCard(BuildContext context, String text, String route, String image, bool requiresConnection) {
+  Widget _makeCard(BuildContext context, String text, String route, String image, bool ignoreConnection) {
     return InkWell(
       onTap: () {
-        if (SettingsData.connected && requiresConnection) {
+        if (SettingsData.connected || ignoreConnection) {
           Navigator.pushNamed(context, route);
         }
       },
@@ -73,10 +73,10 @@ class _MainPageState extends State<MainPage> with RouteAware implements Notifiab
         children: [
           notification,
           deviceDesc("CH"),
-          _makeCard(context, "Manage\nCentral\nHeating", "/manageCH", "${SettingsData.getState("CH").iconPrefix()}.png",true),
+          _makeCard(context, "Manage\nCentral\nHeating", "/manageCH", "${SettingsData.getState("CH").iconPrefix()}.png",false),
           deviceDesc("HW"),
-          _makeCard(context, "Manage\nHot\nWater", "/manageHW", "${SettingsData.getState("HW").iconPrefix()}.png",true),
-          _makeCard(context, "Schedule", "/schedule", "Dial.png",false),
+          _makeCard(context, "Manage\nHot\nWater", "/manageHW", "${SettingsData.getState("HW").iconPrefix()}.png",false),
+          _makeCard(context, "Schedule", "/schedule", "Dial.png",true),
         ],
       ),
     );
@@ -93,7 +93,7 @@ class _MainPageState extends State<MainPage> with RouteAware implements Notifiab
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    routeObserver.subscribe(this, ModalRoute.of(context));
+    routeObserverMP.subscribe(this, ModalRoute.of(context));
   }
 
   @override
@@ -106,7 +106,7 @@ class _MainPageState extends State<MainPage> with RouteAware implements Notifiab
   @override
   void update(String m, int count, bool error) {
     setState(() {
-      notification = !error?Container(width: 0, height: 0):Text("[$m]", style: StatusTextStyle(error),textAlign: TextAlign.center,);
+      notification = !error?EmptyContainer():Text("[$m]", style: StatusTextStyle(error),textAlign: TextAlign.center,);
     });
   }
 }

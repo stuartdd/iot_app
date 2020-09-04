@@ -19,7 +19,7 @@ class _ManagePageState extends State<ManagePage> implements NotifiablePage {
   DeviceState deviceState;
   double screenWidth = 0;
   String name;
-  Widget notification = Container(width: 0, height: 0);
+  Widget notification = EmptyContainer();
 
   @override
   void dispose() {
@@ -128,7 +128,7 @@ class _ManagePageState extends State<ManagePage> implements NotifiablePage {
       if (count > 0) {
         deviceState.clearSync();
       }
-      notification = !error?Container(width: 0, height: 0):Text("[$m]", style: StatusTextStyle(error),textAlign: TextAlign.center,);
+      notification = !error?EmptyContainer():Text("[$m]", style: StatusTextStyle(error),textAlign: TextAlign.center,);
     });
   }
 }

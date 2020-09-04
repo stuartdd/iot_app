@@ -4,6 +4,7 @@ import 'dart:async';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:iot_app/data/comms.dart';
+import 'package:iot_app/data/data_objects.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'notification.dart';
@@ -11,9 +12,9 @@ import 'notification.dart';
 const String FN_PREF = "settings";
 const String FN_TYPE = "json";
 const String J_TYPE = "type";
-const String J_NAME = "name";
 const String J_HOST = "host";
 const String J_PORT = "port";
+const String J_USER = "name";
 const String J_PERIOD = "period";
 const String J_REMOTE_ID_T = "remoteIdTime";
 const String J_REMOTE_ID_S = "remoteIdStat";
@@ -27,7 +28,7 @@ const String J_DEVICES = "devices";
 
 class DeviceState {
   final String type;
-  final String name;
+  String name;
   final String remoteIdTime;
   final String remoteIdStat;
 
@@ -35,10 +36,12 @@ class DeviceState {
   int _until = 0;
   bool _inSync = false;
 
-  DeviceState(this.type, this.name, this.remoteIdTime, this.remoteIdStat);
+  DeviceState(this.type, this.remoteIdTime, this.remoteIdStat) {
+    this.name = DEV_NAMES[this.type];
+  }
 
   String toJson() {
-    return '{\"$J_TYPE\":\"$type\",\"$J_NAME\":\"$name\",\"$J_REMOTE_ID_T\":\"$remoteIdTime\",\"$J_REMOTE_ID_S\":\"$remoteIdStat\",\"$J_STATE\":\"${onString()}\"}';
+    return '{\"$J_TYPE\":\"$type\",\"$J_REMOTE_ID_T\":\"$remoteIdTime\",\"$J_REMOTE_ID_S\":\"$remoteIdStat\",\"$J_STATE\":\"${onString()}\"}';
   }
 
   bool hasUntil() {
@@ -52,12 +55,12 @@ class DeviceState {
   String statusString() {
     String s = "${onString()}";
     if (hasUntil()) {
-      DateTime dt = SettingsData.dateTimePlus(_until);
+      DateTime dt = dateTimePlusS(_until);
       if (DateTime.now().weekday == dt.weekday) {
-        return "$s until today at ${_pad(dt.hour)}:${_pad(dt.minute)}.";
+        return "$s until today at ${pad(dt.hour)}:${pad(dt.minute)}.";
       }
-      return "$s until ${DateFormat('EEEE').format(dt)} ${_pad(
-          dt.hour)}:${_pad(dt.minute)}.";
+      return "$s until ${DateFormat('EEEE').format(dt)} ${pad(
+          dt.hour)}:${pad(dt.minute)}.";
     }
     return "$name is $s";
   }
@@ -112,12 +115,6 @@ class DeviceState {
     return (_state != currentState) || (_until != currentUntil);
   }
 
-  String _pad(int i) {
-    if (i < 10) {
-      return "0" + i.toString();
-    }
-    return i.toString();
-  }
 
 }
 
@@ -134,6 +131,7 @@ class SettingsData {
   static Timer updateTimer;
   static int updateCounter = 0;
   static int _updatePeriodSeconds = DEFAULT_PERIOD_SECONDS;
+  static ScheduleList scheduleList = ScheduleList.init();
 
   static getPort() {
     return _port == null ? 80 : _port;
@@ -198,8 +196,8 @@ class SettingsData {
       _port = DEFAULT_PORT;
       _updatePeriodSeconds = DEFAULT_PERIOD_SECONDS;
       _state = {
-        "CH": DeviceState("CH", "Heating", "ta", "sa"),
-        "HW": DeviceState("HW", "Hot Water", "tb", "sb")
+        "CH": DeviceState("CH", "ta", "sa"),
+        "HW": DeviceState("HW", "tb", "sb")
       };
     }
   }
@@ -241,7 +239,7 @@ class SettingsData {
   static String toJson() {
     String s = "";
     _state.forEach((k, v) => s = s + v.toJson() + ',');
-    return '{\"$J_NAME\":\"Stuart\",\"$J_HOST\":\"$host\",\"$J_PORT\":${getPort()},\"$J_PERIOD\":${getUpdatePeriodSeconds()}, \"$J_DEVICES\" : [${s.substring(0, s.length - 1)}]}';
+    return '{\"$J_USER\":\"Stuart\",\"$J_HOST\":\"$host\",\"$J_PORT\":${getPort()},\"$J_PERIOD\":${getUpdatePeriodSeconds()}, \"$J_DEVICES\" : [${s.substring(0, s.length - 1)}]}';
   }
 
   static int readInt(Map map, String name, int def) {
@@ -273,7 +271,7 @@ class SettingsData {
       _defaultState(false);
       return;
     }
-    userName = readString(userMap, J_NAME, "Unknown");
+    userName = readString(userMap, J_USER, "Unknown");
     host = readString(userMap, J_HOST, DEFAULT_HOST);
     _port = readInt(userMap, J_PORT, DEFAULT_PORT);
     _updatePeriodSeconds = readInt(userMap, J_PERIOD, DEFAULT_PERIOD_SECONDS);
@@ -284,8 +282,7 @@ class SettingsData {
       if (type != null) {
         DeviceState ds = DeviceState(
           type,
-          readString(dMap, J_NAME, "Unknown"),
-          readString(dMap, J_REMOTE_ID_T, null),
+          readString(dMap, J_USER, "Unknown"),
           readString(dMap, J_REMOTE_ID_S, null),
         );
         temp[ds.type] = ds;
@@ -371,14 +368,6 @@ class SettingsData {
       l = l + st + '\n';
     });
     return l;
-  }
-
-  static DateTime dateTimePlus(int seconds) {
-    DateTime now = DateTime.now();
-    DateTime mon1 = DateTime.fromMillisecondsSinceEpoch(
-        now.millisecondsSinceEpoch - ((now.weekday - 1) * MS_DAY));
-    DateTime mon2 = DateTime(mon1.year, mon1.month, mon1.day, 0, 0, 1);
-    return mon2.add(Duration(seconds: seconds));
   }
 
 }

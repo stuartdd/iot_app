@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:iot_app/settings/settings_page.dart';
 import 'data/settings_data.dart';
 import 'input/manage_page.dart';
+import 'input/scheduleDays_page.dart';
 import 'input/schedule_page.dart';
 import 'main_page.dart';
 
@@ -36,13 +37,14 @@ class BPApp extends StatelessWidget {
         // closer together (more dense) than on mobile platforms.
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      navigatorObservers: [routeObserver],
+      navigatorObservers: [routeObserverMP,routeObserverSP],
       initialRoute: "/",
       routes: {
         "/": (context) => MainPage(),
         "/manageCH": (context) => ManagePage("CH"),
         "/manageHW": (context) => ManagePage("HW"),
         "/schedule": (context) => SchedulePage(),
+        "/scheduleDays": (context) => ScheduleDayPage(),
         "/settings": (context) => SettingsPage(),
         "/maintenance" : (context) => MaintenancePage(),
       },

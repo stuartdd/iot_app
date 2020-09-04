@@ -21,7 +21,7 @@ class _SettingsPageState extends State<SettingsPage> implements NotifiablePage {
   String pollText = SettingsData.getUpdatePeriodSeconds().toString();
   double screenWidth = 0;
   double fieldWidth = 0;
-  Widget notification = Container(width: 0, height: 0);
+  Widget notification = EmptyContainer();
 
   bool validatePort() {
     try {
@@ -203,6 +203,8 @@ class _SettingsPageState extends State<SettingsPage> implements NotifiablePage {
         ),
       ),
     );
+
+
   }
 
   @override
