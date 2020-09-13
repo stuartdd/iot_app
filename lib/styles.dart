@@ -31,25 +31,36 @@ class HeadingDataStyleHi extends TextStyle {
 class ScheduleDataStyle extends TextStyle {
   const ScheduleDataStyle()
       : super(
-    fontSize: 30.0,
-    fontWeight: FontWeight.bold,
-    color: Colors.blue,
-  );
+          fontSize: 25.0,
+          fontWeight: FontWeight.bold,
+          color: Colors.blue,
+        );
 }
 
 class ScheduleDataIconStyle extends TextStyle {
   const ScheduleDataIconStyle()
       : super(
-    fontSize: 25.0,
-    color: Colors.blue,
-  );
+          fontSize: 23.0,
+          color: Colors.blue,
+          fontWeight: FontWeight.bold,
+        );
+}
+
+class ScheduleDataIconStyleDis extends TextStyle {
+  const ScheduleDataIconStyleDis()
+      : super(
+          fontSize: 23.0,
+          color: Colors.grey,
+          fontWeight: FontWeight.bold,
+        );
 }
 
 class EmptyContainer extends Container {
-  EmptyContainer() : super (
-    width: 0,
-    height: 0,
-  );
+  EmptyContainer()
+      : super(
+          width: 0,
+          height: 0,
+        );
 }
 
 class InfoTextStyle extends TextStyle {

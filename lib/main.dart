@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:iot_app/data/schedule_data.dart';
 import 'package:iot_app/settings/maintenance_page.dart';
 import 'package:flutter/material.dart';
 import 'package:iot_app/settings/settings_page.dart';
@@ -41,8 +42,8 @@ class BPApp extends StatelessWidget {
       initialRoute: "/",
       routes: {
         "/": (context) => MainPage(),
-        "/manageCH": (context) => ManagePage("CH"),
-        "/manageHW": (context) => ManagePage("HW"),
+        "/manageCH": (context) => ManagePage(DevType.CH),
+        "/manageHW": (context) => ManagePage(DevType.HW),
         "/schedule": (context) => SchedulePage(),
         "/scheduleDays": (context) => ScheduleDayPage(),
         "/settings": (context) => SettingsPage(),

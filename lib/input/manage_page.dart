@@ -1,11 +1,12 @@
 import 'dart:async';
+import 'package:iot_app/data/schedule_data.dart';
 import 'package:iot_app/data/notification.dart';
 import 'package:iot_app/data/settings_data.dart';
 import 'package:iot_app/styles.dart';
 import 'package:flutter/material.dart';
 
 class ManagePage extends StatefulWidget {
-  final String deviceType;
+  final DevType deviceType;
 
   ManagePage(this.deviceType);
   @override
@@ -94,7 +95,7 @@ class _ManagePageState extends State<ManagePage> implements NotifiablePage {
     return Scaffold(
       appBar: new AppBar(
         title: new Text(
-          'Control ${deviceState.name}',
+          'Control ${deviceState.typeData.name}',
           style: const TitleStyle(),
         ),
         centerTitle: true,
@@ -112,9 +113,9 @@ class _ManagePageState extends State<ManagePage> implements NotifiablePage {
             ),
             _makeOnOffCard(context, 1, 1.6, "/input", deviceState),
              BlackDivider(),
-            _makeBoostCard(context, "b1", 1, 1.6, "/input", "${deviceState.type},1", "1 Hour\nBoost", "Boost"),
-            _makeBoostCard(context, "b2", 2, 2, "/input", "${deviceState.type},2", "2 Hour\nBoost", "Boost"),
-            _makeBoostCard(context, "b3", 3, 2.8, "/input", "${deviceState.type},3", "3 Hour\nBoost", "Boost"),
+            _makeBoostCard(context, "b1", 1, 1.6, "/input", "${deviceState.typeData.name},1", "1 Hour\nBoost", "Boost"),
+            _makeBoostCard(context, "b2", 2, 2, "/input", "${deviceState.typeData.name},2", "2 Hour\nBoost", "Boost"),
+            _makeBoostCard(context, "b3", 3, 2.8, "/input", "${deviceState.typeData.name},3", "3 Hour\nBoost", "Boost"),
           ],
         ),
       ),

@@ -3,6 +3,8 @@ import 'package:iot_app/data/settings_data.dart';
 import 'package:iot_app/styles.dart';
 import 'package:flutter/material.dart';
 
+import 'data/schedule_data.dart';
+
 final RouteObserver<PageRoute> routeObserverMP = RouteObserver<PageRoute>();
 
 class MainPage extends StatefulWidget {
@@ -72,17 +74,17 @@ class _MainPageState extends State<MainPage> with RouteAware implements Notifiab
         shrinkWrap: true,
         children: [
           notification,
-          deviceDesc("CH"),
-          _makeCard(context, "Manage\nCentral\nHeating", "/manageCH", "${SettingsData.getState("CH").iconPrefix()}.png",false),
-          deviceDesc("HW"),
-          _makeCard(context, "Manage\nHot\nWater", "/manageHW", "${SettingsData.getState("HW").iconPrefix()}.png",false),
+          deviceDesc(DevType.CH),
+          _makeCard(context, "Manage\n${DevTypeData.forDevType(DevType.CH).name}", "/manageCH", "${SettingsData.getState(DevType.CH).iconPrefix()}.png",false),
+          deviceDesc(DevType.HW),
+          _makeCard(context, "Manage\n${DevTypeData.forDevType(DevType.HW).name}", "/manageHW", "${SettingsData.getState(DevType.HW).iconPrefix()}.png",false),
           _makeCard(context, "Schedule", "/schedule", "Dial.png",true),
         ],
       ),
     );
   }
 
-  Widget deviceDesc(String type) {
+  Widget deviceDesc(DevType type) {
       return Text(
         SettingsData.statusString(type),
         textAlign: TextAlign.center,

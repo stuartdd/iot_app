@@ -4,7 +4,7 @@ import 'dart:async';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:iot_app/data/comms.dart';
-import 'package:iot_app/data/data_objects.dart';
+import 'package:iot_app/data/schedule_data.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'notification.dart';
@@ -27,21 +27,17 @@ const String J_STATE = "state";
 const String J_DEVICES = "devices";
 
 class DeviceState {
-  final String type;
-  String name;
+  final DevTypeData typeData;
   final String remoteIdTime;
   final String remoteIdStat;
-
   bool _state = false;
   int _until = 0;
   bool _inSync = false;
 
-  DeviceState(this.type, this.remoteIdTime, this.remoteIdStat) {
-    this.name = DEV_NAMES[this.type];
-  }
+  DeviceState(this.typeData, this.remoteIdTime, this.remoteIdStat);
 
   String toJson() {
-    return '{\"$J_TYPE\":\"$type\",\"$J_REMOTE_ID_T\":\"$remoteIdTime\",\"$J_REMOTE_ID_S\":\"$remoteIdStat\",\"$J_STATE\":\"${onString()}\"}';
+    return '{\"$J_TYPE\":\"${typeData.id}\",\"$J_REMOTE_ID_T\":\"$remoteIdTime\",\"$J_REMOTE_ID_S\":\"$remoteIdStat\",\"$J_STATE\":\"${onString()}\"}';
   }
 
   bool hasUntil() {
@@ -49,7 +45,7 @@ class DeviceState {
   }
 
   String iconPrefix() {
-    return "${isOn() ? "ON" : "OFF"}_$type";
+    return "${isOn() ? "ON" : "OFF"}_${typeData.id}";
   }
 
   String statusString() {
@@ -62,7 +58,7 @@ class DeviceState {
       return "$s until ${DateFormat('EEEE').format(dt)} ${pad(
           dt.hour)}:${pad(dt.minute)}.";
     }
-    return "$name is $s";
+    return "${typeData.name} is $s";
   }
 
   isOn() {
@@ -94,7 +90,7 @@ class DeviceState {
     bool currentState = _state;
     int currentUntil = _until;
     if (m[remoteIdStat] == null) {
-      SettingsData.log("$type map[$remoteIdTime] is remoteIdStat");
+      SettingsData.log("${typeData.id} map[$remoteIdTime] is remoteIdStat");
       _state = false;
     } else {
       int t = m[remoteIdTime];
@@ -102,7 +98,7 @@ class DeviceState {
     }
 
     if (m[remoteIdTime] == null) {
-      SettingsData.log("$type map[$remoteIdTime] is null");
+      SettingsData.log("${typeData.id} map[$remoteIdTime] is null");
       _until = 0;
     } else {
       int t = m[remoteIdTime];
@@ -115,11 +111,10 @@ class DeviceState {
     return (_state != currentState) || (_until != currentUntil);
   }
 
-
 }
 
 class SettingsData {
-  static Map<String, DeviceState> _state;
+  static Map<DevType, DeviceState> _state;
   static String userName = "UN";
   static bool var1 = true;
   static List<String> _logList = [];
@@ -131,6 +126,7 @@ class SettingsData {
   static Timer updateTimer;
   static int updateCounter = 0;
   static int _updatePeriodSeconds = DEFAULT_PERIOD_SECONDS;
+  static bool dispScheduleAsDuration = false;
   static ScheduleList scheduleList = ScheduleList.init();
 
   static getPort() {
@@ -196,8 +192,8 @@ class SettingsData {
       _port = DEFAULT_PORT;
       _updatePeriodSeconds = DEFAULT_PERIOD_SECONDS;
       _state = {
-        "CH": DeviceState("CH", "ta", "sa"),
-        "HW": DeviceState("HW", "tb", "sb")
+        DevType.CH: DeviceState(DevTypeData.forDevType(DevType.CH), "ta", "sa"),
+        DevType.HW: DeviceState(DevTypeData.forDevType(DevType.HW), "tb", "sb")
       };
     }
   }
@@ -228,12 +224,12 @@ class SettingsData {
     });
   }
 
-  static DeviceState getState(String type) {
+  static DeviceState getState(DevType type) {
     return _state[type];
   }
 
-  static String statusString(String type) {
-    return _state[type] == null? "Device type [$type] is undefined":_state[type].statusString();
+  static String statusString(DevType type) {
+    return _state[type] == null? "Device type [${DevTypeData.forDevType(type).name}] is undefined":_state[type].statusString();
   }
 
   static String toJson() {
@@ -276,16 +272,16 @@ class SettingsData {
     _port = readInt(userMap, J_PORT, DEFAULT_PORT);
     _updatePeriodSeconds = readInt(userMap, J_PERIOD, DEFAULT_PERIOD_SECONDS);
 
-    Map<String, DeviceState> temp = {};
+    Map<DevType, DeviceState> temp = {};
     for (Map dMap in userMap[J_DEVICES]) {
-      String type = readString(dMap, J_TYPE, null);
-      if (type != null) {
+      String typeId = readString(dMap, J_TYPE, null);
+      if (typeId != null) {
         DeviceState ds = DeviceState(
-          type,
+          DevTypeData.devTypeForId(typeId),
           readString(dMap, J_USER, "Unknown"),
           readString(dMap, J_REMOTE_ID_S, null),
         );
-        temp[ds.type] = ds;
+        temp[ds.typeData.type] = ds;
       } else {
         log("parse: 'devices.type' is null. Skipping entry!");
       }

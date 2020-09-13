@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:iot_app/data/data_objects.dart';
+import 'package:iot_app/data/schedule_data.dart';
 import 'package:iot_app/data/settings_data.dart';
 import '../styles.dart';
 
@@ -16,7 +16,7 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware {
   double screenWidth = 0;
 
   Widget _makeCard(
-      BuildContext context, String route, ScheduleTypeAndRange typeAndRange) {
+      BuildContext context, String route, int day) {
     return Card(
       child: Row(
         mainAxisAlignment: MainAxisAlignment.start,
@@ -24,31 +24,23 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware {
           SizedBox(
             width: screenWidth / ICON_SCALE,
             child: FlatButton(
-              child: Image.asset(
-                SettingsData.scheduleList.hasAnySet("CH", typeAndRange.startDay)?"assets/CH.png":"assets/OFF_CH.png",
-              ),
+              child: image(DevType.CH, day),
               onPressed: () {
-                print("CH $typeAndRange");
                 Navigator.pushNamed(context, "/scheduleDays",
-                    arguments: ScheduleTypeAndRange(
-                        "CH", typeAndRange.startDay, typeAndRange.endDay));
+                    arguments: DayAndType(DevTypeData.forDevType(DevType.CH), day));
               },
             ),
           ),
           SizedBox(
             width: screenWidth / ICON_SCALE,
             child: FlatButton(
-                child: Image.asset(
-                  SettingsData.scheduleList.hasAnySet("HW", typeAndRange.startDay)?"assets/HW.png":"assets/OFF_HW.png",
-                ),
+                child: image(DevType.HW, day),
                 onPressed: () {
-                  print("HW $typeAndRange");
                   Navigator.pushNamed(context, "/scheduleDays",
-                      arguments: ScheduleTypeAndRange(
-                          "HW", typeAndRange.startDay, typeAndRange.endDay));
+                      arguments: DayAndType(DevTypeData.forDevType(DevType.HW), day));
                 }),
           ),
-          Text("$typeAndRange",
+          Text("${DAYS[day]}",
               textAlign: TextAlign.left, style: const CardTextStyle()),
         ],
       ),
@@ -70,16 +62,13 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware {
         padding: EdgeInsets.fromLTRB(0, 2, 0, 2),
         shrinkWrap: true,
         children: [
-          _makeCard(context, "", ScheduleTypeAndRange("", 0, 4)),
-          _makeCard(context, "", ScheduleTypeAndRange("", 5, 6)),
-          const BlackDivider(),
-          _makeCard(context, "", ScheduleTypeAndRange("", 0, 0)),
-          _makeCard(context, "", ScheduleTypeAndRange("", 1, 1)),
-          _makeCard(context, "", ScheduleTypeAndRange("", 2, 2)),
-          _makeCard(context, "", ScheduleTypeAndRange("", 3, 3)),
-          _makeCard(context, "", ScheduleTypeAndRange("", 4, 4)),
-          _makeCard(context, "", ScheduleTypeAndRange("", 5, 5)),
-          _makeCard(context, "", ScheduleTypeAndRange("", 6, 6)),
+          _makeCard(context, "",  0),
+          _makeCard(context, "",  1),
+          _makeCard(context, "",  2),
+          _makeCard(context, "",  3),
+          _makeCard(context, "",  4),
+          _makeCard(context, "",  5),
+          _makeCard(context, "",  6),
         ],
       ),
     );
@@ -97,4 +86,7 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware {
     });
   }
 
+  Widget image(DevType type, int day) {
+    return Image.asset(SettingsData.scheduleList.hasAnySet(type, day) ? "assets/${DevTypeData.forDevType(type).id}.png" : "assets/DIS_${DevTypeData.forDevType(type).id}.png");
+  }
 }
