@@ -90,7 +90,7 @@ class DeviceState {
     bool currentState = _state;
     int currentUntil = _until;
     if (m[remoteIdStat] == null) {
-      SettingsData.log("${typeData.id} map[$remoteIdTime] is remoteIdStat");
+      SettingsData.log("Update: ${typeData.id} map[$remoteIdStat] is null");
       _state = false;
     } else {
       int t = m[remoteIdTime];
@@ -98,7 +98,7 @@ class DeviceState {
     }
 
     if (m[remoteIdTime] == null) {
-      SettingsData.log("${typeData.id} map[$remoteIdTime] is null");
+      SettingsData.log("Update: ${typeData.id} map[$remoteIdTime] is null");
       _until = 0;
     } else {
       int t = m[remoteIdTime];
@@ -278,7 +278,7 @@ class SettingsData {
       if (typeId != null) {
         DeviceState ds = DeviceState(
           DevTypeData.devTypeForId(typeId),
-          readString(dMap, J_USER, "Unknown"),
+          readString(dMap, J_REMOTE_ID_T, null),
           readString(dMap, J_REMOTE_ID_S, null),
         );
         temp[ds.typeData.type] = ds;
@@ -338,7 +338,7 @@ class SettingsData {
         }
         Clipboard.setData(ClipboardData(text: contents));
         return contents;
-      } on Exception catch (e) {
+      } on Exception {
         return SettingsData.log("Unable to read file [${file.path})]");
       }
     } else {

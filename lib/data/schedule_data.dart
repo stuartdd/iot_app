@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:iot_app/data/settings_data.dart';
 
 const int MS_DAY = 86400000;
@@ -67,6 +66,15 @@ class DevTypeData {
     throw DevTypeDataNotFound("type", type.toString());
   }
 
+  static String nameForDevType(DevType type) {
+    for (var value in _DEV_DATA) {
+      if (value.type == type) {
+        return value.name;
+      }
+    }
+    throw DevTypeDataNotFound("type", type.toString());
+  }
+
   @override
   String toString() {
     return name;
@@ -74,11 +82,16 @@ class DevTypeData {
 }
 
 class DayAndType {
-  final DevTypeData typeData;
+  final DevType typeData;
   final int day;
   const DayAndType(this.typeData, this.day);
+
   bool isWeakend() {
     return ((day == SUNDAY) || (day == SATURDAY));
+  }
+
+  String name() {
+    return DevTypeData.nameForDevType(typeData);
   }
 }
 
@@ -96,7 +109,7 @@ class ScheduleOnOff implements Comparable {
   }
 
   String name() {
-    return DevTypeData.forDevType(type).name;
+    return DevTypeData.nameForDevType(type);
   }
 
   int getOnTimeToday() {
@@ -189,11 +202,6 @@ class ScheduleOnOff implements Comparable {
     _offTimeToday = SEC_HALF_DAY;
   }
 
-  void initOn() {
-    _onTimeToday = SEC_HALF_DAY;
-    _offTimeToday = SEC_HALF_DAY + SEC_INIT_DURATION;
-  }
-
   @override
   int compareTo(other) {
     return secondsSinceMondayOn().compareTo((other as ScheduleOnOff).secondsSinceMondayOn());
@@ -208,17 +216,36 @@ class ScheduleOnOff implements Comparable {
   }
 
   int getMaxPeriod() {
-    ScheduleOnOff next = parent.next(this);
-    if (next == null) {
+    ScheduleOnOff n = next();
+    if (n == null) {
       return SEC_DAY - this.getOnTimeToday();
     }
-    return next.getOnTimeToday() - this.getOnTimeToday();
+    return n.getOnTimeToday() - this.getOnTimeToday();
   }
 
   void setPeriodSeconds(int secs) {
     _offTimeToday = _onTimeToday + secs;
     parent.sort();
   }
+
+  bool isSame(ScheduleOnOff scheduleOnOff) {
+    if (scheduleOnOff == null) {
+      return false;
+    }
+    return ((scheduleOnOff.type == this.type) && (scheduleOnOff.dayOfWeek == this.dayOfWeek));
+  }
+
+  next() {
+    var n = parent.next(this);
+    while (n != null) {
+      if (isSame(n)) {
+        return n;
+      }
+      n = parent.next(this);
+    }
+    return null;
+  }
+
 }
 
 class ScheduleList {
@@ -280,6 +307,16 @@ class ScheduleList {
     this.sort();
   }
 
+  void addInitialSchedule(DayAndType dnt) {
+    var s = filter(dnt.typeData, dnt.day, true);
+    if (s.isEmpty) {
+      add(ScheduleOnOff(dnt.typeData, dnt.day, SEC_HALF_DAY, SEC_HALF_DAY + SEC_INIT_DURATION));
+    } else {
+      s[0]._onTimeToday = SEC_HALF_DAY;
+      s[0]._offTimeToday = SEC_HALF_DAY + SEC_INIT_DURATION;
+    }
+  }
+
   bool canAddAfter(ScheduleOnOff scheduleOnOff) {
     sort();
     if ((SEC_DAY - scheduleOnOff.getOffTimeToday()) <= (SEC_INIT_DURATION * 2)) {
@@ -335,7 +372,7 @@ class ScheduleList {
   }
 
   void clear(DayAndType dayAndType) {
-    var list = filter(dayAndType.typeData.type, dayAndType.day, true);
+    var list = filter(dayAndType.typeData, dayAndType.day, true);
     for (var s in list) {
       remove(s);
     }

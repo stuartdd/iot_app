@@ -5,12 +5,12 @@ import '../styles.dart';
 
 const double ICON_SCALE = 4.5;
 
-enum CHOICE_ENUM { CHOICE_NO_ACTION, CHOICE_SAT_SUN, CHOICE_MON_FRIDAY, CHOICE_CLEAR, CHOICE_DISP_TIMES, CHOICE_DISP_DUR }
+enum CHOICE_ENUM { CHOICE_ADD_TIME, CHOICE_SAT_SUN, CHOICE_MON_FRIDAY, CHOICE_CLEAR, CHOICE_DISP_TIMES, CHOICE_DISP_DUR }
 
+const _Choice AddTime = _Choice(Text("Add an ON time", style: const ScheduleDataIconStyle()), CHOICE_ENUM.CHOICE_ADD_TIME);
 const _Choice SatSun = _Choice(Text("Use For Sat to Sun", style: const ScheduleDataIconStyle()), CHOICE_ENUM.CHOICE_SAT_SUN);
 const _Choice MonFri = _Choice(Text("Use For Mon to Fri", style: const ScheduleDataIconStyle()), CHOICE_ENUM.CHOICE_MON_FRIDAY);
 const _Choice ClearSchedule = _Choice(Text("Clear Schedule", style: const ScheduleDataIconStyle()), CHOICE_ENUM.CHOICE_CLEAR);
-const _Choice ClearScheduleDis = _Choice(Text("Clear Schedule", style: const ScheduleDataIconStyleDis()), CHOICE_ENUM.CHOICE_NO_ACTION);
 const _Choice DisplayTimes = _Choice(Text("Display TO as Time", style: const ScheduleDataIconStyle()), CHOICE_ENUM.CHOICE_DISP_TIMES);
 const _Choice DisplayDuration = _Choice(Text("Display TO as Duration", style: const ScheduleDataIconStyle()), CHOICE_ENUM.CHOICE_DISP_DUR);
 
@@ -39,18 +39,13 @@ class _ScheduleDayPageState extends State<ScheduleDayPage> {
 
   List<_Period> periodList(ScheduleOnOff scheduleOnOff) {
     List<_Period> list = [];
-    list.add(_Period('For', -1));
     int mins = scheduleOnOff.getMaxPeriod() ~/ 60;
     int sub = 15;
-    int min = 15;
     while (mins >= 15) {
-      list.add(_Period("${HM(min)}", min));
-      min = min + sub;
+      list.insert(0, _Period("${HM(mins)}", mins));
       mins = mins - sub;
-      if (min >= 120) {
-        sub = 60;
-      }
     }
+    list.insert(0, _Period('For', -1));
     return list;
   }
 
@@ -101,10 +96,7 @@ class _ScheduleDayPageState extends State<ScheduleDayPage> {
         icon: icon,
       );
     } else {
-      return FlatButton.icon(
-        label: text,
-        icon: icon,
-      );
+      return FlatButton.icon(label: text, icon: icon, onPressed: () {});
     }
   }
 
@@ -126,10 +118,7 @@ class _ScheduleDayPageState extends State<ScheduleDayPage> {
         label: text,
       );
     } else {
-      return FlatButton.icon(
-        icon: icon,
-        label: text,
-      );
+      return FlatButton.icon(label: text, icon: icon, onPressed: () {});
     }
   }
 
@@ -147,7 +136,7 @@ class _ScheduleDayPageState extends State<ScheduleDayPage> {
                   : FlatButton.icon(
                       onPressed: () {
                         setState(() {
-                          scheduleOnOff.initOn();
+                          SettingsData.scheduleList.addInitialSchedule(DayAndType(scheduleOnOff.type, scheduleOnOff.dayOfWeek));
                         });
                       },
                       icon: Icon(
@@ -214,7 +203,7 @@ class _ScheduleDayPageState extends State<ScheduleDayPage> {
                       Icons.backspace,
                       color: Colors.blue,
                     ),
-                    label: Text("Clear", style: const ScheduleDataIconStyle()),
+                    label: Text("Clr", style: const ScheduleDataIconStyle()),
                   )
                 : EmptyContainer(),
           ]),
@@ -224,9 +213,9 @@ class _ScheduleDayPageState extends State<ScheduleDayPage> {
   }
 
   List<Widget> populate(BuildContext context, DayAndType dayAndType) {
-    List<ScheduleOnOff> temp = SettingsData.scheduleList.filter(dayAndType.typeData.type, dayAndType.day, true);
+    List<ScheduleOnOff> temp = SettingsData.scheduleList.filter(dayAndType.typeData, dayAndType.day, true);
     if (temp.isEmpty) {
-      ScheduleOnOff scheduleOnOff = ScheduleOnOff(dayAndType.typeData.type, dayAndType.day, SEC_HALF_DAY, SEC_HALF_DAY);
+      ScheduleOnOff scheduleOnOff = ScheduleOnOff(dayAndType.typeData, dayAndType.day, SEC_HALF_DAY, SEC_HALF_DAY);
       SettingsData.scheduleList.add(scheduleOnOff);
       temp.add(scheduleOnOff);
       canDelete = false;
@@ -253,6 +242,9 @@ class _ScheduleDayPageState extends State<ScheduleDayPage> {
             onSelected: (_Choice s) {
               setState(() {
                 switch (s.choice) {
+                  case CHOICE_ENUM.CHOICE_ADD_TIME:
+                    SettingsData.scheduleList.addInitialSchedule(dayAndType);
+                    break;
                   case CHOICE_ENUM.CHOICE_DISP_DUR:
                     SettingsData.dispScheduleAsDuration = true;
                     break;
@@ -266,7 +258,7 @@ class _ScheduleDayPageState extends State<ScheduleDayPage> {
               });
             },
             itemBuilder: (BuildContext context) {
-              return [(dayAndType.isWeakend() ? SatSun : MonFri), (SettingsData.scheduleList.hasAnySet(dayAndType.typeData.type, dayAndType.day) ? ClearSchedule : ClearScheduleDis), (SettingsData.dispScheduleAsDuration ? DisplayTimes : DisplayDuration)].map((choice) {
+              return menuChoices(dayAndType).map((choice) {
                 return PopupMenuItem<_Choice>(
                   value: choice,
                   child: choice.text,
@@ -276,7 +268,7 @@ class _ScheduleDayPageState extends State<ScheduleDayPage> {
           )
         ],
         title: new Text(
-          '${dayAndType.typeData.name}',
+          '${dayAndType.name()}',
           textAlign: TextAlign.center,
           style: const TitleStyle(),
         ),
@@ -288,6 +280,18 @@ class _ScheduleDayPageState extends State<ScheduleDayPage> {
         children: list,
       ),
     );
+  }
+
+  List<_Choice> menuChoices(DayAndType dayAndType) {
+    List<_Choice> l = [];
+    if (SettingsData.scheduleList.hasAnySet(dayAndType.typeData, dayAndType.day)) {
+      l.add(dayAndType.isWeakend() ? SatSun : MonFri);
+      l.add(ClearSchedule);
+      l.add(SettingsData.dispScheduleAsDuration ? DisplayTimes : DisplayDuration);
+    } else {
+      l.add(AddTime);
+    }
+    return l;
   }
 
   Future<TimeOfDay> _selectTime(BuildContext context, TimeOfDay time) async {

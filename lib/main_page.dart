@@ -75,9 +75,9 @@ class _MainPageState extends State<MainPage> with RouteAware implements Notifiab
         children: [
           notification,
           deviceDesc(DevType.CH),
-          _makeCard(context, "Manage\n${DevTypeData.forDevType(DevType.CH).name}", "/manageCH", "${SettingsData.getState(DevType.CH).iconPrefix()}.png",false),
+          _makeCard(context, "Manage\n${DevTypeData.nameForDevType(DevType.CH)}", "/manageCH", "${SettingsData.getState(DevType.CH).iconPrefix()}.png",false),
           deviceDesc(DevType.HW),
-          _makeCard(context, "Manage\n${DevTypeData.forDevType(DevType.HW).name}", "/manageHW", "${SettingsData.getState(DevType.HW).iconPrefix()}.png",false),
+          _makeCard(context, "Manage\n${DevTypeData.nameForDevType(DevType.HW)}", "/manageHW", "${SettingsData.getState(DevType.HW).iconPrefix()}.png",false),
           _makeCard(context, "Schedule", "/schedule", "Dial.png",true),
         ],
       ),

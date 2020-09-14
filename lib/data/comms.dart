@@ -23,7 +23,6 @@ class Remote {
     }
     if (response.statusCode == 200) {
       try {
-        print("--> $path <-- ${response.body}");
         return jsonDecode(response.body);
       } on Exception catch (e) {
         throw Exception(SettingsData.log('Failed to parse data from device. ${e.toString()}. Json[${response.body}]'));

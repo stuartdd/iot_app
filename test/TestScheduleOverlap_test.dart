@@ -16,8 +16,8 @@ const int T8 = (SEC_HOUR * 4) + SEC_15M;
 void main() {
 
   test('DeviceType', () {
-    expect('Heating', DevTypeData.forDevType(DevType.CH).name);
-    expect('Hot Water', DevTypeData.forDevType(DevType.HW).name);
+    expect('Heating', DevTypeData.nameForDevType(DevType.CH));
+    expect('Hot Water', DevTypeData.nameForDevType(DevType.HW));
     expect('Heating', DevTypeData.forDevType(DevType.CH).toString());
     expect('Hot Water', DevTypeData.forDevType(DevType.HW).toString());
     expect('CH', DevTypeData.forDevType(DevType.CH).id);

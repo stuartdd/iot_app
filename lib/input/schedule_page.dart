@@ -27,7 +27,7 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware {
               child: image(DevType.CH, day),
               onPressed: () {
                 Navigator.pushNamed(context, "/scheduleDays",
-                    arguments: DayAndType(DevTypeData.forDevType(DevType.CH), day));
+                    arguments: DayAndType(DevType.CH, day));
               },
             ),
           ),
@@ -37,7 +37,7 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware {
                 child: image(DevType.HW, day),
                 onPressed: () {
                   Navigator.pushNamed(context, "/scheduleDays",
-                      arguments: DayAndType(DevTypeData.forDevType(DevType.HW), day));
+                      arguments: DayAndType(DevType.HW, day));
                 }),
           ),
           Text("${DAYS[day]}",
