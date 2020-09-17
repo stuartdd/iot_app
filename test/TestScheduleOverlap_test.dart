@@ -20,8 +20,8 @@ void main() {
     expect('Hot Water', DevTypeData.nameForDevType(DevType.HW));
     expect('Heating', DevTypeData.forDevType(DevType.CH).toString());
     expect('Hot Water', DevTypeData.forDevType(DevType.HW).toString());
-    expect('CH', DevTypeData.forDevType(DevType.CH).id);
-    expect('HW', DevTypeData.forDevType(DevType.HW).id);
+    expect('CH', DevTypeData.idForDevType(DevType.CH));
+    expect('HW', DevTypeData.idForDevType(DevType.HW));
     expect(DevType.CH, DevTypeData.devTypeForId("CH").type);
     expect(DevType.HW, DevTypeData.devTypeForId("HW").type);
     expect("CH", DevTypeData.devTypeForId("CH").id);

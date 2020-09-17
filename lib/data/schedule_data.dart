@@ -67,12 +67,11 @@ class DevTypeData {
   }
 
   static String nameForDevType(DevType type) {
-    for (var value in _DEV_DATA) {
-      if (value.type == type) {
-        return value.name;
-      }
-    }
-    throw DevTypeDataNotFound("type", type.toString());
+    return forDevType(type).name;
+  }
+
+  static String idForDevType(DevType type) {
+    return forDevType(type).id;
   }
 
   @override
@@ -287,12 +286,9 @@ class ScheduleList {
         ScheduleOnOff sch1 = _scheduleList[i];
         ScheduleOnOff sch2 = _scheduleList[i + 1];
         if (sch1.overlaps(sch2)) {
-          print('SC1  $sch1');
-          print('SC2  $sch2');
           remove(sch2);
           if (sch1._offTimeToday < sch2._offTimeToday) {
             sch1._offTimeToday = sch2._offTimeToday;
-            print('SC1+ $sch1');
           }
           removed = true;
           break;
@@ -308,6 +304,7 @@ class ScheduleList {
   }
 
   void addInitialSchedule(DayAndType dnt) {
+    print('addInitialSchedule');
     var s = filter(dnt.typeData, dnt.day, true);
     if (s.isEmpty) {
       add(ScheduleOnOff(dnt.typeData, dnt.day, SEC_HALF_DAY, SEC_HALF_DAY + SEC_INIT_DURATION));
@@ -315,6 +312,8 @@ class ScheduleList {
       s[0]._onTimeToday = SEC_HALF_DAY;
       s[0]._offTimeToday = SEC_HALF_DAY + SEC_INIT_DURATION;
     }
+    this.sort();
+    print('addInitialSchedule DONE');
   }
 
   bool canAddAfter(ScheduleOnOff scheduleOnOff) {

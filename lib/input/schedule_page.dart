@@ -87,6 +87,6 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware {
   }
 
   Widget image(DevType type, int day) {
-    return Image.asset(SettingsData.scheduleList.hasAnySet(type, day) ? "assets/${DevTypeData.forDevType(type).id}.png" : "assets/DIS_${DevTypeData.forDevType(type).id}.png");
+    return Image.asset(SettingsData.scheduleList.hasAnySet(type, day) ? "assets/${DevTypeData.idForDevType(type)}.png" : "assets/DIS_${DevTypeData.idForDevType(type)}.png");
   }
 }

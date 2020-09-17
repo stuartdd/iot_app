@@ -7,7 +7,7 @@ const double ICON_SCALE = 4.5;
 
 enum CHOICE_ENUM { CHOICE_ADD_TIME, CHOICE_SAT_SUN, CHOICE_MON_FRIDAY, CHOICE_CLEAR, CHOICE_DISP_TIMES, CHOICE_DISP_DUR }
 
-const _Choice AddTime = _Choice(Text("Add an ON time", style: const ScheduleDataIconStyle()), CHOICE_ENUM.CHOICE_ADD_TIME);
+const _Choice AddTime = _Choice(Text("Set the ON time", style: const ScheduleDataIconStyle()), CHOICE_ENUM.CHOICE_ADD_TIME);
 const _Choice SatSun = _Choice(Text("Use For Sat to Sun", style: const ScheduleDataIconStyle()), CHOICE_ENUM.CHOICE_SAT_SUN);
 const _Choice MonFri = _Choice(Text("Use For Mon to Fri", style: const ScheduleDataIconStyle()), CHOICE_ENUM.CHOICE_MON_FRIDAY);
 const _Choice ClearSchedule = _Choice(Text("Clear Schedule", style: const ScheduleDataIconStyle()), CHOICE_ENUM.CHOICE_CLEAR);
@@ -143,7 +143,7 @@ class _ScheduleDayPageState extends State<ScheduleDayPage> {
                         Icons.access_time,
                         color: Colors.blue,
                       ),
-                      label: Text("Click here!", style: ScheduleDataIconStyle()),
+                      label: Text("Click here to set!", style: ScheduleDataIconStyle()),
                     ),
             ],
           ),
@@ -203,7 +203,7 @@ class _ScheduleDayPageState extends State<ScheduleDayPage> {
                       Icons.backspace,
                       color: Colors.blue,
                     ),
-                    label: Text("Clr", style: const ScheduleDataIconStyle()),
+                    label: Text("Clear", style: const ScheduleDataIconStyle()),
                   )
                 : EmptyContainer(),
           ]),
@@ -237,36 +237,36 @@ class _ScheduleDayPageState extends State<ScheduleDayPage> {
     return Scaffold(
       appBar: new AppBar(
         toolbarHeight: 80,
-        actions: <Widget>[
-          PopupMenuButton<_Choice>(
-            onSelected: (_Choice s) {
-              setState(() {
-                switch (s.choice) {
-                  case CHOICE_ENUM.CHOICE_ADD_TIME:
-                    SettingsData.scheduleList.addInitialSchedule(dayAndType);
-                    break;
-                  case CHOICE_ENUM.CHOICE_DISP_DUR:
-                    SettingsData.dispScheduleAsDuration = true;
-                    break;
-                  case CHOICE_ENUM.CHOICE_DISP_TIMES:
-                    SettingsData.dispScheduleAsDuration = false;
-                    break;
-                  case CHOICE_ENUM.CHOICE_CLEAR:
-                    SettingsData.scheduleList.clear(dayAndType);
-                    break;
-                }
-              });
-            },
-            itemBuilder: (BuildContext context) {
-              return menuChoices(dayAndType).map((choice) {
-                return PopupMenuItem<_Choice>(
-                  value: choice,
-                  child: choice.text,
-                );
-              }).toList();
-            },
-          )
-        ],
+        // actions: <Widget>[
+        //   PopupMenuButton<_Choice>(
+        //     onSelected: (_Choice s) {
+        //       setState(() {
+        //         switch (s.choice) {
+        //           case CHOICE_ENUM.CHOICE_ADD_TIME:
+        //             SettingsData.scheduleList.addInitialSchedule(dayAndType);
+        //             break;
+        //           case CHOICE_ENUM.CHOICE_DISP_DUR:
+        //             SettingsData.dispScheduleAsDuration = true;
+        //             break;
+        //           case CHOICE_ENUM.CHOICE_DISP_TIMES:
+        //             SettingsData.dispScheduleAsDuration = false;
+        //             break;
+        //           case CHOICE_ENUM.CHOICE_CLEAR:
+        //             SettingsData.scheduleList.clear(dayAndType);
+        //             break;
+        //         }
+        //       });
+        //     },
+        //     itemBuilder: (BuildContext context) {
+        //       return menuChoices(dayAndType).map((choice) {
+        //         return PopupMenuItem<_Choice>(
+        //           value: choice,
+        //           child: choice.text,
+        //         );
+        //       }).toList();
+        //     },
+        //   )
+        // ],
         title: new Text(
           '${dayAndType.name()}',
           textAlign: TextAlign.center,

@@ -229,7 +229,7 @@ class SettingsData {
   }
 
   static String statusString(DevType type) {
-    return _state[type] == null? "Device type [${DevTypeData.forDevType(type).name}] is undefined":_state[type].statusString();
+    return _state[type] == null? "Device type [${DevTypeData.nameForDevType(type)}] is undefined":_state[type].statusString();
   }
 
   static String toJson() {
