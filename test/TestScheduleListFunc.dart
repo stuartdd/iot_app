@@ -39,6 +39,15 @@ void main() {
     expect(1, list.indexOf(sc2));
     expect(sc3, list.next(sc2));
     expect(sc1, list.previous(sc2));
+
+    expect(sc2, list.next(sc1));
+    expect(sc3, list.next(sc2));
+    expect(null, list.next(sc3));
+
+    expect(null, list.previous(sc1));
+    expect(sc1, list.previous(sc2));
+    expect(sc2, list.previous(sc3));
+
   });
 
   test('HMS', () {

@@ -237,36 +237,36 @@ class _ScheduleDayPageState extends State<ScheduleDayPage> {
     return Scaffold(
       appBar: new AppBar(
         toolbarHeight: 80,
-        // actions: <Widget>[
-        //   PopupMenuButton<_Choice>(
-        //     onSelected: (_Choice s) {
-        //       setState(() {
-        //         switch (s.choice) {
-        //           case CHOICE_ENUM.CHOICE_ADD_TIME:
-        //             SettingsData.scheduleList.addInitialSchedule(dayAndType);
-        //             break;
-        //           case CHOICE_ENUM.CHOICE_DISP_DUR:
-        //             SettingsData.dispScheduleAsDuration = true;
-        //             break;
-        //           case CHOICE_ENUM.CHOICE_DISP_TIMES:
-        //             SettingsData.dispScheduleAsDuration = false;
-        //             break;
-        //           case CHOICE_ENUM.CHOICE_CLEAR:
-        //             SettingsData.scheduleList.clear(dayAndType);
-        //             break;
-        //         }
-        //       });
-        //     },
-        //     itemBuilder: (BuildContext context) {
-        //       return menuChoices(dayAndType).map((choice) {
-        //         return PopupMenuItem<_Choice>(
-        //           value: choice,
-        //           child: choice.text,
-        //         );
-        //       }).toList();
-        //     },
-        //   )
-        // ],
+        actions: <Widget>[
+          PopupMenuButton<_Choice>(
+            onSelected: (_Choice s) {
+              setState(() {
+                switch (s.choice) {
+                  case CHOICE_ENUM.CHOICE_ADD_TIME:
+                    SettingsData.scheduleList.addInitialSchedule(dayAndType);
+                    break;
+                  case CHOICE_ENUM.CHOICE_DISP_DUR:
+                    SettingsData.dispScheduleAsDuration = true;
+                    break;
+                  case CHOICE_ENUM.CHOICE_DISP_TIMES:
+                    SettingsData.dispScheduleAsDuration = false;
+                    break;
+                  case CHOICE_ENUM.CHOICE_CLEAR:
+                    SettingsData.scheduleList.clear(dayAndType);
+                    break;
+                }
+              });
+            },
+            itemBuilder: (BuildContext context) {
+              return menuChoices(dayAndType).map((choice) {
+                return PopupMenuItem<_Choice>(
+                  value: choice,
+                  child: choice.text,
+                );
+              }).toList();
+            },
+          )
+        ],
         title: new Text(
           '${dayAndType.name()}',
           textAlign: TextAlign.center,

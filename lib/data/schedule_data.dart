@@ -83,6 +83,7 @@ class DevTypeData {
 class DayAndType {
   final DevType typeData;
   final int day;
+
   const DayAndType(this.typeData, this.day);
 
   bool isWeakend() {
@@ -188,7 +189,7 @@ class ScheduleOnOff implements Comparable {
     if (s.isEmpty) {
       return "Not Set";
     }
-    return "Until " +offTimeStr();
+    return "Until " + offTimeStr();
   }
 
   @override
@@ -227,6 +228,9 @@ class ScheduleOnOff implements Comparable {
     parent.sort();
   }
 
+  /*
+  Return true is the schedules are the same type and on the same day.
+   */
   bool isSame(ScheduleOnOff scheduleOnOff) {
     if (scheduleOnOff == null) {
       return false;
@@ -234,17 +238,19 @@ class ScheduleOnOff implements Comparable {
     return ((scheduleOnOff.type == this.type) && (scheduleOnOff.dayOfWeek == this.dayOfWeek));
   }
 
+  /*
+  get The next schedule of the same type;
+   */
   next() {
     var n = parent.next(this);
     while (n != null) {
       if (isSame(n)) {
         return n;
       }
-      n = parent.next(this);
+      n = parent.next(n);
     }
     return null;
   }
-
 }
 
 class ScheduleList {
@@ -304,7 +310,6 @@ class ScheduleList {
   }
 
   void addInitialSchedule(DayAndType dnt) {
-    print('addInitialSchedule');
     var s = filter(dnt.typeData, dnt.day, true);
     if (s.isEmpty) {
       add(ScheduleOnOff(dnt.typeData, dnt.day, SEC_HALF_DAY, SEC_HALF_DAY + SEC_INIT_DURATION));
@@ -313,7 +318,6 @@ class ScheduleList {
       s[0]._offTimeToday = SEC_HALF_DAY + SEC_INIT_DURATION;
     }
     this.sort();
-    print('addInitialSchedule DONE');
   }
 
   bool canAddAfter(ScheduleOnOff scheduleOnOff) {
@@ -359,15 +363,19 @@ class ScheduleList {
     if (index < 1) {
       return null;
     }
-    return _scheduleList[index-1];
+    return _scheduleList[index - 1];
   }
 
+  /*
+  Get the next entry in the _scheduleList relative to the one passed in.
+  Return if there is none and iff the one passed in is not found!
+   */
   ScheduleOnOff next(ScheduleOnOff scheduleOnOff) {
     int index = indexOf(scheduleOnOff);
-    if ((index < 0) || (index >=  (_scheduleList.length-1))) {
+    if ((index < 0) || (index >= (_scheduleList.length - 1))) {
       return null;
     }
-    return _scheduleList[index+1];
+    return _scheduleList[index + 1];
   }
 
   void clear(DayAndType dayAndType) {
@@ -429,5 +437,4 @@ String HMWords(Duration d) {
     }
   }
   return "for ${pad(h)}h ${pad(m)}m";
-
 }
