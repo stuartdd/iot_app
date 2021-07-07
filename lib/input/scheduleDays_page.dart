@@ -5,12 +5,13 @@ import '../styles.dart';
 
 const double ICON_SCALE = 4.5;
 
-enum CHOICE_ENUM { CHOICE_ADD_TIME, CHOICE_SAT_SUN, CHOICE_MON_FRIDAY, CHOICE_CLEAR, CHOICE_DISP_TIMES, CHOICE_DISP_DUR }
-
+enum CHOICE_ENUM { CHOICE_ADD_TIME, CHOICE_SAT_SUN, CHOICE_MON_FRIDAY, CHOICE_CLEAR, CHOICE_CLEAR_SAT_SUN, CHOICE_CLEAR_MON_FRI, CHOICE_DISP_TIMES, CHOICE_DISP_DUR }
 const _Choice AddTime = _Choice(Text("Set the ON time", style: const ScheduleDataIconStyle()), CHOICE_ENUM.CHOICE_ADD_TIME);
 const _Choice SatSun = _Choice(Text("Use For Sat to Sun", style: const ScheduleDataIconStyle()), CHOICE_ENUM.CHOICE_SAT_SUN);
 const _Choice MonFri = _Choice(Text("Use For Mon to Fri", style: const ScheduleDataIconStyle()), CHOICE_ENUM.CHOICE_MON_FRIDAY);
-const _Choice ClearSchedule = _Choice(Text("Clear Schedule", style: const ScheduleDataIconStyle()), CHOICE_ENUM.CHOICE_CLEAR);
+const _Choice ClearDay = _Choice(Text("Clear Day", style: const ScheduleDataIconStyle()), CHOICE_ENUM.CHOICE_CLEAR);
+const _Choice ClearSatSun = _Choice(Text("Clear Sat to Sun", style: const ScheduleDataIconStyle()), CHOICE_ENUM.CHOICE_CLEAR_SAT_SUN);
+const _Choice ClearMonFri = _Choice(Text("Clear Mon to Fri", style: const ScheduleDataIconStyle()), CHOICE_ENUM.CHOICE_CLEAR_MON_FRI);
 const _Choice DisplayTimes = _Choice(Text("Display TO as Time", style: const ScheduleDataIconStyle()), CHOICE_ENUM.CHOICE_DISP_TIMES);
 const _Choice DisplayDuration = _Choice(Text("Display TO as Duration", style: const ScheduleDataIconStyle()), CHOICE_ENUM.CHOICE_DISP_DUR);
 
@@ -242,6 +243,12 @@ class _ScheduleDayPageState extends State<ScheduleDayPage> {
             onSelected: (_Choice s) {
               setState(() {
                 switch (s.choice) {
+                  case CHOICE_ENUM.CHOICE_MON_FRIDAY:
+                    SettingsData.scheduleList.duplicateMonFri(dayAndType);
+                    break;
+                  case CHOICE_ENUM.CHOICE_SAT_SUN:
+                    SettingsData.scheduleList.duplicateSatSun(dayAndType);
+                    break;
                   case CHOICE_ENUM.CHOICE_ADD_TIME:
                     SettingsData.scheduleList.addInitialSchedule(dayAndType);
                     break;
@@ -254,6 +261,13 @@ class _ScheduleDayPageState extends State<ScheduleDayPage> {
                   case CHOICE_ENUM.CHOICE_CLEAR:
                     SettingsData.scheduleList.clear(dayAndType);
                     break;
+                  case CHOICE_ENUM.CHOICE_CLEAR_MON_FRI:
+                    SettingsData.scheduleList.clearMonFri(dayAndType);
+                    break;
+                  case CHOICE_ENUM.CHOICE_CLEAR_SAT_SUN:
+                    SettingsData.scheduleList.clearSatSun(dayAndType);
+                    break;
+
                 }
               });
             },
@@ -286,10 +300,11 @@ class _ScheduleDayPageState extends State<ScheduleDayPage> {
     List<_Choice> l = [];
     if (SettingsData.scheduleList.hasAnySet(dayAndType.typeData, dayAndType.day)) {
       l.add(dayAndType.isWeakend() ? SatSun : MonFri);
-      l.add(ClearSchedule);
+      l.add(ClearDay);
       l.add(SettingsData.dispScheduleAsDuration ? DisplayTimes : DisplayDuration);
     } else {
       l.add(AddTime);
+      l.add(dayAndType.isWeakend() ? ClearSatSun : ClearMonFri);
     }
     return l;
   }

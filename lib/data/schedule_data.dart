@@ -93,6 +93,11 @@ class DayAndType {
   String name() {
     return DevTypeData.nameForDevType(typeData);
   }
+
+  @override
+  String toString() {
+    return 'DayAndType{typeData: $typeData, day: $day, weekend: ${isWeakend()?"YES":"NO"}}';
+  }
 }
 
 class ScheduleOnOff implements Comparable {
@@ -382,6 +387,39 @@ class ScheduleList {
     var list = filter(dayAndType.typeData, dayAndType.day, true);
     for (var s in list) {
       remove(s);
+    }
+  }
+
+  void duplicateMonFri(DayAndType dayAndType) {
+    duplicateDays(dayAndType, MONDAY, FRIDAY);
+  }
+
+  void duplicateSatSun(DayAndType dayAndType) {
+    duplicateDays(dayAndType, SATURDAY, SUNDAY);
+  }
+
+  void duplicateDays(DayAndType dayAndType, int fromDay, int toDay) {
+    List<ScheduleOnOff> list = filter(dayAndType.typeData, dayAndType.day, true);
+    clearDays(dayAndType, fromDay, toDay);
+    for (int i = fromDay; i <= toDay; i++) {
+      for (var s in list) {
+        add(new ScheduleOnOff(dayAndType.typeData, i, s.getOnTimeToday(), s.getOffTimeToday()));
+      }
+    }
+    sort();
+  }
+
+  void clearMonFri(DayAndType dayAndType) {
+    clearDays(dayAndType, MONDAY, FRIDAY);
+  }
+
+  void clearSatSun(DayAndType dayAndType) {
+    clearDays(dayAndType, SATURDAY, SUNDAY);
+  }
+
+  void clearDays(DayAndType dayAndType, int fromDay, int toDay) {
+    for (int i = fromDay; i <= toDay; i++) {
+      clear(new DayAndType(dayAndType.typeData, i));
     }
   }
 }
